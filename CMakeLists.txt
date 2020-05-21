@@ -16,7 +16,7 @@ find_package(OpenGL REQUIRED)
 add_subdirectory (external)
 
 include_directories(
-	Src/Include/
+	Src/
 	external/glfw-3.2.1/include/
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
@@ -41,8 +41,9 @@ add_definitions(
 
 add_executable(ClothBase 
     ClothBase.cpp
-	Src/Impl/Window.cpp
-	Src/Impl/ClothApp.cpp
+	Src/Window/Window.cpp
+	Src/ClothApp/ClothApp.cpp
+	Src/Util/Config/ConfigUtils.cpp
 
 	
 )

@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<Config>
+    <ConfigParameter>
+        <Type>U</Type>
+        <Name>WINDOW_HEIGHT</Name>
+        <Value>720</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>U</Type>
+        <Name>WINDOW_WIDTH</Name>
+        <Value>1280</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>S</Type>
+        <Name>WindowName</Name>
+        <Value>WindowName</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>F</Type>
+        <Name>cameraYOffset</Name>
+        <Value>3.3</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>F</Type>
+        <Name>cameraZOffset</Name>
+        <Value>2</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>F</Type>
+        <Name>cameraAngle</Name>
+        <Value>35</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>F</Type>
+        <Name>cameraPitch</Name>
+        <Value>-60.0</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>F</Type>
+        <Name>cameraYaw</Name>
+        <Value>-90.0</Value>
+    </ConfigParameter>
+
+</Config>
+
+<!-- types I - int
+           U - unsigned
+           F - float
+           D - dobule
+           S - std::string>
+

@@ -1,4 +1,4 @@
-#include <ClothApp.hpp>
+#include "Src/ClothApp/ClothApp.hpp"
 
 ClothApp::ClothApp(Window &window) : windowRef(window)
 {
