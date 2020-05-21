@@ -12,11 +12,11 @@ Window::Window(uint16_t Width, uint16_t height, const char *title) : iWidth(Widt
 		printf("glfwInit Fail !!! \n");
 	}
 
-	//glfwWindowHint(GLFW_SAMPLES, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    //TODO ADD TO CONFIG 
+	glfwWindowHint(GLFW_SAMPLES, 4);			   // 4x antialiasing
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // We want OpenGL 4.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL
 
 	// Open a window and create its OpenGL context
 	//window = glfwCreateWindow(Width, height, title, glfwGetPrimaryMonitor(), NULL);
@@ -27,6 +27,13 @@ Window::Window(uint16_t Width, uint16_t height, const char *title) : iWidth(Widt
 		printf("Failed to open Window \n");
 	}
 	glfwMakeContextCurrent(window);
+
+	glewExperimental = true; // Needed in core profile
+
+	if (glewInit() != GLEW_OK)
+	{
+		fprintf(stderr, "Failed to initialize GLEW\n");
+	}
 
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);

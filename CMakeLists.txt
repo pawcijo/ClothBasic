@@ -44,8 +44,9 @@ add_executable(ClothBase
 	Src/Window/Window.cpp
 	Src/ClothApp/ClothApp.cpp
 	Src/Util/Config/ConfigUtils.cpp
+	Src/Shader/Shader.cpp
+	Src/Camera/Camera.cpp
 
-	
 )
 
 target_link_libraries(ClothBase

@@ -1,8 +1,8 @@
 #pragma once
-
-// Include GLFW
+//Glew library that helps in querying and loading OpenGL extensions
+#include <GL/glew.h>
+// GLFW handle the window and the keyboard
 #include <GLFW/glfw3.h>
-// Include GLM
 #include <glm/glm.hpp>
 
 class Window

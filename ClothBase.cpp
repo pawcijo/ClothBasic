@@ -1,5 +1,5 @@
 /*
-Tu tego
+    Main for ClothApp.
 */
 
 #include <iostream>
