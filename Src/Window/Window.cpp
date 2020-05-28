@@ -3,6 +3,8 @@
 
 #include <iostream>
 
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+
 Window::Window(uint16_t Width, uint16_t height, const char *title) : iWidth(Width), iHeight(height)
 {
 
@@ -13,7 +15,7 @@ Window::Window(uint16_t Width, uint16_t height, const char *title) : iWidth(Widt
 	}
 
     //TODO ADD TO CONFIG 
-	glfwWindowHint(GLFW_SAMPLES, 4);			   // 4x antialiasing
+	glfwWindowHint(GLFW_SAMPLES,4);			   // 4x antialiasing
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // We want OpenGL 4.3
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL
@@ -45,8 +47,5 @@ Window::Window(uint16_t Width, uint16_t height, const char *title) : iWidth(Widt
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// Dark blue background
-	glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
 
-	glEnable(GL_DEPTH_TEST);
 }

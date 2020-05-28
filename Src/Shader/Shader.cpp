@@ -100,6 +100,12 @@ Shader::Shader(const char *vertex_file_path, const char *fragment_file_path)
 	shaderProgramID = ProgramID;
 }
 
+Shader::~Shader()
+{
+	printf("Shader program removed");
+	glDeleteProgram(shaderProgramID);
+}
+
 // use/activate the shader
 void Shader::use()
 {

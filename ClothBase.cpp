@@ -17,6 +17,5 @@ int main()
   std::string windowName = "ClothBase";
   Window window(WINDOW_WIDTH, WINDOW_HEIGHT, windowName.c_str());
   ClothApp app(window);
-
   app.run();
 }

@@ -13,7 +13,7 @@ class ClothApp
     Window & windowRef;
     bool cursorEnabled = false;
 
-    Camera camera;
+    // Camera camera;
     float cameraSpeed = 1;
     //Shader Stuff
     Shader *shaderProgram = nullptr;
