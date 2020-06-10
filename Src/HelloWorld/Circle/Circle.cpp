@@ -6,9 +6,8 @@
 
 #define MY_PI 3.14159265358979
 
-Circle::Circle(int circleVerticies,float radius)
+Circle::Circle(int circleVerticies,float radius,Transform& aTransform): transform(aTransform)
 {
-
     std::vector<float> verticies;
     for (double i = 0; i < 2 * MY_PI; i += 2 * MY_PI / circleVerticies)
     {
@@ -20,8 +19,6 @@ Circle::Circle(int circleVerticies,float radius)
         verticies.push_back(0.01);           // G
         verticies.push_back(0.01);           // B
     }
-
-
     verticiesSize = verticies.size();
 
     glGenVertexArrays(1, &VAO);
@@ -51,6 +48,10 @@ Circle::Circle(int circleVerticies,float radius)
 void Circle::Draw(Shader *shader)
 {
     glUseProgram(shader->shaderProgramID);
+
+    unsigned int transformLoc = glGetUniformLocation(shader->shaderProgramID, "transform");
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform.getTransform()));
+
     glBindVertexArray(VAO);
     glDrawArrays(GL_TRIANGLE_FAN, 0, verticiesSize);
     glBindVertexArray(0);

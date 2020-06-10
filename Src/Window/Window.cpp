@@ -7,7 +7,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 
 Window::Window(uint16_t Width, uint16_t height, const char *title) : iWidth(Width), iHeight(height)
 {
-
 	// Initialise GLFW
 	if (!glfwInit())
 	{

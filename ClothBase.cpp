@@ -1,6 +1,3 @@
-/*
-    Main for ClothApp.
-*/
 
 #include <iostream>
 #include "Src/Window/Window.hpp"

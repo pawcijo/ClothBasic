@@ -48,7 +48,9 @@ add_executable(ClothBase
 	Src/Camera/Camera.cpp
 	Src/HelloWorld/Square/Square.cpp
 	Src/HelloWorld/Object3D/Object3D.cpp
+	Src/HelloWorld/SubDataObject3D/SubDataObject3D.cpp
 	Src/HelloWorld/Circle/Circle.cpp
+	Src/Transform/Transform.cpp
 
 )
 

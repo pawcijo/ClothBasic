@@ -1,7 +1,9 @@
 #include "Src/ClothApp/ClothApp.hpp"
 #include "Src/HelloWorld/Square/Square.hpp"
 #include "Src/HelloWorld/Object3D/Object3D.hpp"
+#include "Src/HelloWorld/SubDataObject3D/SubDataObject3D.hpp"
 #include "Src/HelloWorld/Circle/Circle.hpp"
+#include "Src/Shapes/Shapes.hpp"
 #include <glm/glm.hpp>
 #include <cmath>
 
@@ -25,50 +27,164 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     {
         glfwSetWindowShouldClose(window, true);
     }
+
+    if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
+    {
+        printf("Camera Position:  x:%f y:%f z:%f \n", globalCameraPosition.x, globalCameraPosition.y, globalCameraPosition.z);
+        printf("Camera yaw:%f pitch:%f \n",globalCameraYaw, globalCameraPitch);
+    }
 }
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 {
+    posx = xpos;
+    posy = ypos;
 }
 
-ClothApp::ClothApp(Window &window) : windowRef(window) /*, camera(Camera())*/
+ClothApp::ClothApp(Window &window) : windowRef(window), camera(Camera())
 {
     printf("ClothApp created .\n");
     glfwSetKeyCallback(window.window, key_callback);
     glfwSetCursorPosCallback(window.window, cursor_position_callback);
-    shaderProgram = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
+    shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
+    shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
+    subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
+    camera.Position = glm::vec3(14, -5.8, -81);
+    camera.Yaw = -282;
+    camera.Pitch = 16;
+}
+
+void ClothApp::processMouse()
+{
+
+    if (firstMouse)
+    {
+        lastX = posx;
+        lastY = posy;
+        firstMouse = false;
+    }
+
+    float xoffset = posx - lastX;
+    float yoffset =
+        lastY - posy; // reversed since y-coordinates go from bottom to top
+
+    lastX = posx;
+    lastY = posy;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void ClothApp::processKeys()
+{
+
+    if (glfwGetKey(windowRef.window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        camera.Position += cameraSpeed * camera.Front;
+    }
+
+    if (glfwGetKey(windowRef.window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        camera.Position -= cameraSpeed * camera.Front;
+    }
+    if (glfwGetKey(windowRef.window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        camera.Position -=
+            glm::normalize(glm::cross(camera.Front, camera.Up)) * cameraSpeed;
+    }
+    if (glfwGetKey(windowRef.window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        camera.Position +=
+            glm::normalize(glm::cross(camera.Front, camera.Up)) * cameraSpeed;
+    }
+    if (glfwGetKey(windowRef.window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        camera.Position += cameraSpeed * camera.Up;
+    }
+
+    if (glfwGetKey(windowRef.window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        camera.Position -= cameraSpeed * camera.Up;
+    }
+}
+
+void ClothApp::setViewPerspective(Camera &aCamera)
+{
+
+    projection = glm::perspective(
+        aCamera.Zoom, (float)windowRef.iWidth / (float)windowRef.iHeight,
+        0.1f, 10000.0f);
+    view = aCamera.GetViewMatrix();
+
+    shader3D->use();
+    shader3D->setMat4("projection", projection);
+    shader3D->setMat4("view", view);
+
+    subDataShader3D->use();
+    subDataShader3D->setMat4("projection", projection);
+    subDataShader3D->setMat4("view", view);
 }
 
 void ClothApp::run()
 {
 
-    std::vector<float> vertices{
-        0.5f, 0.5f, 0.0f, 0.9f, 0.1f, 0.1f,   // top right
-        0.5f, -0.5f, 0.0f, 0.1f, 0.9f, 0.1f,  // bottom right
-        -0.5f, -0.5f, 0.0f, 0.1f, 0.1f, 0.9f, // bottom left
-        -0.5f, 0.5f, 0.0f, 0.5f, 0.5f, 0.0f,  // top left
-    };
+    Transform cubeTransform = Transform::origin();
+    Transform subDataCubeTransform = Transform::origin();
+    Transform circleTransform = Transform::origin();
 
-    std::vector<unsigned> indices{
-        // note that we start from 0!
-        0, 1, 3, // first Triangle
-        1, 2, 3  // second Triangle
-    };
+    Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
+    cube.transform.scaleTransform(10, 10, 10);
 
-    Object3D square(vertices, indices);
-    Circle circle(170,0.5);
+    SubDataObject3D subDataCube(Shapes::Cube::vertices, Shapes::Cube::indices, subDataCubeTransform);
+    subDataCube.transform.scaleTransform(10, 10, 10);
+    subDataCube.transform.translate(glm::vec3(10, 10, 10));
+
+    Circle circle(170, 0.5, circleTransform);
+    circleTransform.translate(glm::vec3(-0.93, 0.89, 0));
+    circleTransform.scaleTransform(1, (float)windowRef.iWidth / (float)windowRef.iHeight, 1);
+    circleTransform.scaleTransform(0.1, 0.1, 0.1);
+
+    unsigned next_tick = (glfwGetTime() * 1000);
+    int loops;
+    float interpolation = 1.0;
+    const int TICKS_PER_SECOND = 64;
+    const int SKIP_TICKS = 1000 / TICKS_PER_SECOND;
+    const int MAX_FRAMESKIP = 5;
 
     while (!glfwWindowShouldClose(windowRef.window))
     {
 
+        loops = 0;
+
+        while ((glfwGetTime() * 1000) > next_tick && loops < MAX_FRAMESKIP)
+        {
+            processKeys();
+            processMouse();
+            globalCameraPosition = camera.Position;
+            globalCameraYaw = camera.Yaw;
+            globalCameraPitch = camera.Pitch;
+            next_tick += SKIP_TICKS;
+            loops++;
+        }
+
+        interpolation =
+            float((glfwGetTime() * 1000) + SKIP_TICKS - next_tick) /
+            float(SKIP_TICKS);
+
         // render
         // ------
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        //square.Draw(shaderProgram);
-        square.Draw(shaderProgram);
-        circle.Draw(shaderProgram);
+        //draw 3D
+        glEnable(GL_DEPTH_TEST);
+        setViewPerspective(camera);
+        cube.Draw(shader3D);
+
+        subDataCube.Draw(subDataShader3D);
+        glDisable(GL_DEPTH_TEST);
+        //draw 2D
+        circle.Draw(shader2D);
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(windowRef.window);

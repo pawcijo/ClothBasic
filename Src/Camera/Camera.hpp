@@ -11,7 +11,7 @@ enum Camera_Movement
   RIGHT
 };
 
-const glm::vec3 CAMERA_DEFAULT_POSTITION(0.0f, 3.5f, 7.0f);
+const glm::vec3 CAMERA_DEFAULT_POSTITION(0.0f, 0.0f, 0.0f);
 const glm::vec3 CAMERA_DEFAULT_WORLD_UP(0.0f, 1.0f, 0.0f);
 const glm::vec3 CAMERA_DAFAULT_FRONT(0.0f, 0.0f, -1.0f);
 const float CAMERA_DEFAULT_YAW(0.0f);
@@ -48,7 +48,6 @@ public:
   Camera(glm::vec3 position, glm::vec3 up, float yaw, float pitch);
   Camera(float posX, float posY, float posZ, float upX, float upY, float upZ, float yaw, float pitch);
 
-  void ProcessKeyboard(Camera_Movement direction, float interpolation);
   void ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch = true);
   void ProcessMouseScroll(float yoffset);
 
