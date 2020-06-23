@@ -6,6 +6,7 @@
 #include <map>
 
 static std::map<int,bool> keyPressedStatus;
+static bool mouseToUpdate = false;
 static double posx;
 static double posy;
 
@@ -34,6 +35,7 @@ class ClothApp
     Camera camera;
     glm::mat4 view;
     glm::mat4 projection;
+    bool mouseCallBack = true;
     bool firstMouse = true;
     double lastY;
     double lastX;

@@ -1,11 +1,15 @@
 #include "Src/ClothApp/ClothApp.hpp"
 #include "Src/HelloWorld/Square/Square.hpp"
 #include "Src/HelloWorld/Object3D/Object3D.hpp"
-#include "Src/HelloWorld/SubDataObject3D/SubDataObject3D.hpp"
+#include "Src/HelloWorld/SubDataObject/SubDataObject.hpp"
 #include "Src/HelloWorld/Circle/Circle.hpp"
 #include "Src/Shapes/Shapes.hpp"
 #include <glm/glm.hpp>
 #include <cmath>
+
+
+void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
 {
@@ -37,6 +41,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 {
+    mouseToUpdate = true;
     posx = xpos;
     posy = ypos;
 }
@@ -49,29 +54,34 @@ ClothApp::ClothApp(Window &window) : windowRef(window), camera(Camera())
     shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
     shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
     subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
-    camera.Position = glm::vec3(14, -5.8, -81);
-    camera.Yaw = -282;
-    camera.Pitch = 16;
+    lastX = windowRef.iHeight/2;
+    lastY = windowRef.iWidth/2;
 }
 
 void ClothApp::processMouse()
 {
-
-    if (firstMouse)
+      if (mouseCallBack)
+  {
+    if (mouseToUpdate)
     {
+       mouseToUpdate = false;
+      if (firstMouse)
+      {
         lastX = posx;
         lastY = posy;
         firstMouse = false;
-    }
+      }
 
-    float xoffset = posx - lastX;
-    float yoffset =
-        lastY - posy; // reversed since y-coordinates go from bottom to top
+      float xoffset = posx - lastX;
+      float yoffset =
+          lastY - posy; // reversed since y-coordinates go from bottom to top
 
-    lastX = posx;
-    lastY = posy;
+      lastX = posx;
+      lastY = posy;
 
     camera.ProcessMouseMovement(xoffset, yoffset);
+    }
+  }
 }
 
 void ClothApp::processKeys()
@@ -127,6 +137,8 @@ void ClothApp::setViewPerspective(Camera &aCamera)
 void ClothApp::run()
 {
 
+      camera.Position = glm::vec3(-100, 10, -5);
+
     Transform cubeTransform = Transform::origin();
     Transform subDataCubeTransform = Transform::origin();
     Transform circleTransform = Transform::origin();
@@ -134,7 +146,7 @@ void ClothApp::run()
     Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
     cube.transform.scaleTransform(10, 10, 10);
 
-    SubDataObject3D subDataCube(Shapes::Cube::vertices, Shapes::Cube::indices, subDataCubeTransform);
+    SubDataObject subDataCube(Shapes::Cube::vertices, Shapes::Cube::indices, subDataCubeTransform);
     subDataCube.transform.scaleTransform(10, 10, 10);
     subDataCube.transform.translate(glm::vec3(10, 10, 10));
 
@@ -178,9 +190,10 @@ void ClothApp::run()
         //draw 3D
         glEnable(GL_DEPTH_TEST);
         setViewPerspective(camera);
-        cube.Draw(shader3D);
 
-        subDataCube.Draw(subDataShader3D);
+        subDataCube.Draw(subDataShader3D,Shapes::Cube::vertices,Shapes::Cube::indices);
+        cube.Draw(shader3D);
+    
         glDisable(GL_DEPTH_TEST);
         //draw 2D
         circle.Draw(shader2D);

@@ -19,8 +19,8 @@ void Camera::updateCameraVectors()
 	// Normalize the vectors, because their length gets closer to 0 the more
 	// you look up or down which results in slower movement.
 	Right = glm::normalize(glm::cross(Front, WorldUp));
-
 	Up = glm::normalize(glm::cross(Right, Front));
+
 }
 
 Camera::Camera() : Position(CAMERA_DEFAULT_POSTITION),
@@ -70,8 +70,9 @@ glm::mat4 Camera::GetViewMatrix()
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, bool constrainPitch)
 {
-	xoffset *= this->MouseSensitivity;
-	yoffset *= this->MouseSensitivity;
+	xoffset *= MouseSensitivity;
+	yoffset *= MouseSensitivity;
+
 
 	Yaw += xoffset;
 	Pitch += yoffset;

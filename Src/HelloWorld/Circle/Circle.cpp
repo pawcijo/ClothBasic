@@ -61,5 +61,5 @@ Circle::~Circle()
 {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
-    printf("Circle removed");
+    printf("Circle removed \n");
 }

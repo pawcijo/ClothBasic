@@ -18,9 +18,12 @@ Object3D::Object3D(std::vector<float>& verticies,std::vector<unsigned>& indicies
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicies.size() * sizeof(unsigned), &indicies[0], GL_STATIC_DRAW);
 
-    //position attrib
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
+    
     /*
     params:  1 (0) attrib number - layout location
              2 (3) attrib size  [ 3 floats for vec3 x y z]
@@ -30,9 +33,7 @@ Object3D::Object3D(std::vector<float>& verticies,std::vector<unsigned>& indicies
              6 ((void *)0) - offset of position data
     */
 
-    //color attrib
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
+
 }
 
 void Object3D::Draw(Shader *shader/*std::vector<glm::vec3>& verticies*/)
@@ -52,5 +53,5 @@ Object3D::~Object3D()
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &EBO);
     glDeleteBuffers(1, &VBO);
-    printf("Object removed");
+    printf("Object removed \n");
 }

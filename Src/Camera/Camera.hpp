@@ -11,11 +11,11 @@ enum Camera_Movement
   RIGHT
 };
 
-const glm::vec3 CAMERA_DEFAULT_POSTITION(0.0f, 0.0f, 0.0f);
+const glm::vec3 CAMERA_DEFAULT_POSTITION(0.0f, 3.5f, 7.0f);
 const glm::vec3 CAMERA_DEFAULT_WORLD_UP(0.0f, 1.0f, 0.0f);
-const glm::vec3 CAMERA_DAFAULT_FRONT(0.0f, 0.0f, -1.0f);
-const float CAMERA_DEFAULT_YAW(0.0f);
-const float CAMERA_DEFAULT_PITCH(-30.0f);
+const glm::vec3 CAMERA_DAFAULT_FRONT(0.0f, 0.0f, 1.0f);
+const float CAMERA_DEFAULT_YAW(24.0f);
+const float CAMERA_DEFAULT_PITCH(14.0f);
 
 const float CAMERA_DEFAULT_SPEED(0.20f);
 const float CAMERA_DEFAULT_MOUSE_SENSIVITY(0.1f);
@@ -35,6 +35,7 @@ public:
   //Eular Angles
   float Yaw;
   float Pitch;
+  bool firstMove = false;
 
   //Camera options
   float MovementSpeed;
@@ -52,6 +53,7 @@ public:
   void ProcessMouseScroll(float yoffset);
 
   void updateCameraVectors();
+
 
 private:
   //Calculates the front vector from the Camera's (updated) Eular Angles
