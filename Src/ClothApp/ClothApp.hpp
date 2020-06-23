@@ -4,6 +4,7 @@
 #include "Src/Camera/Camera.hpp"
 
 #include <map>
+#include <vector>
 
 static std::map<int,bool> keyPressedStatus;
 static bool mouseToUpdate = false;
@@ -39,6 +40,10 @@ class ClothApp
     bool firstMouse = true;
     double lastY;
     double lastX;
+
+
+    //example vertices
+    std::vector<float> exampleToUpdate;
 
     public:
 

@@ -7,7 +7,6 @@
 #include <glm/glm.hpp>
 #include <cmath>
 
-
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
@@ -35,7 +34,7 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
     {
         printf("Camera Position:  x:%f y:%f z:%f \n", globalCameraPosition.x, globalCameraPosition.y, globalCameraPosition.z);
-        printf("Camera yaw:%f pitch:%f \n",globalCameraYaw, globalCameraPitch);
+        printf("Camera yaw:%f pitch:%f \n", globalCameraYaw, globalCameraPitch);
     }
 }
 
@@ -54,34 +53,34 @@ ClothApp::ClothApp(Window &window) : windowRef(window), camera(Camera())
     shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
     shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
     subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
-    lastX = windowRef.iHeight/2;
-    lastY = windowRef.iWidth/2;
+    lastX = windowRef.iHeight / 2;
+    lastY = windowRef.iWidth / 2;
 }
 
 void ClothApp::processMouse()
 {
-      if (mouseCallBack)
-  {
-    if (mouseToUpdate)
+    if (mouseCallBack)
     {
-       mouseToUpdate = false;
-      if (firstMouse)
-      {
-        lastX = posx;
-        lastY = posy;
-        firstMouse = false;
-      }
+        if (mouseToUpdate)
+        {
+            mouseToUpdate = false;
+            if (firstMouse)
+            {
+                lastX = posx;
+                lastY = posy;
+                firstMouse = false;
+            }
 
-      float xoffset = posx - lastX;
-      float yoffset =
-          lastY - posy; // reversed since y-coordinates go from bottom to top
+            float xoffset = posx - lastX;
+            float yoffset =
+                lastY - posy; // reversed since y-coordinates go from bottom to top
 
-      lastX = posx;
-      lastY = posy;
+            lastX = posx;
+            lastY = posy;
 
-    camera.ProcessMouseMovement(xoffset, yoffset);
+            camera.ProcessMouseMovement(xoffset, yoffset);
+        }
     }
-  }
 }
 
 void ClothApp::processKeys()
@@ -90,6 +89,47 @@ void ClothApp::processKeys()
     if (glfwGetKey(windowRef.window, GLFW_KEY_W) == GLFW_PRESS)
     {
         camera.Position += cameraSpeed * camera.Front;
+    }
+
+    if (glfwGetKey(windowRef.window, GLFW_KEY_Q) == GLFW_PRESS)
+    {
+
+        int counter = 0;
+        for (int i = 0; i < exampleToUpdate.size(); i++)
+        {
+            if (counter < 6)
+            {
+                if(counter <3)
+                {
+                exampleToUpdate[i] = exampleToUpdate[i] + 1;
+                }
+                counter++;
+            }
+            if (counter == 6)
+            {
+                counter = 0;
+            }
+        }
+    }
+
+    if (glfwGetKey(windowRef.window, GLFW_KEY_E) == GLFW_PRESS)
+    {
+              int counter = 0;
+        for (int i = 0; i < exampleToUpdate.size(); i++)
+        {
+            if (counter < 6)
+            {
+                if(counter <3)
+                {
+                exampleToUpdate[i] = exampleToUpdate[i] - 1;
+                }
+                counter++;
+            }
+            if (counter == 6)
+            {
+                counter = 0;
+            }
+        }
     }
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_S) == GLFW_PRESS)
@@ -137,7 +177,9 @@ void ClothApp::setViewPerspective(Camera &aCamera)
 void ClothApp::run()
 {
 
-      camera.Position = glm::vec3(-100, 10, -5);
+    camera.Position = glm::vec3(-100, 10, -5);
+
+    exampleToUpdate = Shapes::Cube::vertices;
 
     Transform cubeTransform = Transform::origin();
     Transform subDataCubeTransform = Transform::origin();
@@ -146,7 +188,7 @@ void ClothApp::run()
     Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
     cube.transform.scaleTransform(10, 10, 10);
 
-    SubDataObject subDataCube(Shapes::Cube::vertices, Shapes::Cube::indices, subDataCubeTransform);
+    SubDataObject subDataCube(exampleToUpdate, Shapes::Cube::indices, subDataCubeTransform);
     subDataCube.transform.scaleTransform(10, 10, 10);
     subDataCube.transform.translate(glm::vec3(10, 10, 10));
 
@@ -191,9 +233,9 @@ void ClothApp::run()
         glEnable(GL_DEPTH_TEST);
         setViewPerspective(camera);
 
-        subDataCube.Draw(subDataShader3D,Shapes::Cube::vertices,Shapes::Cube::indices);
+        subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::Cube::indices);
         cube.Draw(shader3D);
-    
+
         glDisable(GL_DEPTH_TEST);
         //draw 2D
         circle.Draw(shader2D);
