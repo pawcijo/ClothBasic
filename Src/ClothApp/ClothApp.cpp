@@ -93,42 +93,18 @@ void ClothApp::processKeys()
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-
-        int counter = 0;
         for (int i = 0; i < exampleToUpdate.size(); i++)
         {
-            if (counter < 6)
-            {
-                if(counter <3)
-                {
-                exampleToUpdate[i] = exampleToUpdate[i] + 1;
-                }
-                counter++;
-            }
-            if (counter == 6)
-            {
-                counter = 0;
-            }
+            exampleToUpdate[i] = exampleToUpdate[i] + 1;
         }
     }
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_E) == GLFW_PRESS)
     {
-              int counter = 0;
+
         for (int i = 0; i < exampleToUpdate.size(); i++)
         {
-            if (counter < 6)
-            {
-                if(counter <3)
-                {
-                exampleToUpdate[i] = exampleToUpdate[i] - 1;
-                }
-                counter++;
-            }
-            if (counter == 6)
-            {
-                counter = 0;
-            }
+            exampleToUpdate[i] = exampleToUpdate[i] - 1;
         }
     }
 
@@ -188,7 +164,7 @@ void ClothApp::run()
     Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
     cube.transform.scaleTransform(10, 10, 10);
 
-    SubDataObject subDataCube(exampleToUpdate,Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
+    SubDataObject subDataCube(exampleToUpdate, Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
     subDataCube.transform.scaleTransform(10, 10, 10);
     subDataCube.transform.translate(glm::vec3(10, 10, 10));
 
@@ -233,7 +209,7 @@ void ClothApp::run()
         glEnable(GL_DEPTH_TEST);
         setViewPerspective(camera);
 
-        subDataCube.Draw(subDataShader3D, exampleToUpdate,Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
+        subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
         cube.Draw(shader3D);
 
         glDisable(GL_DEPTH_TEST);
