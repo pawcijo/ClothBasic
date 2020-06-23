@@ -3,13 +3,13 @@
     <ConfigParameter>
         <Type>U</Type>
         <Name>WINDOW_HEIGHT</Name>
-        <Value>720</Value>
+        <Value>1440</Value>
     </ConfigParameter>
 
     <ConfigParameter>
         <Type>U</Type>
         <Name>WINDOW_WIDTH</Name>
-        <Value>1280</Value>
+        <Value>2560</Value>
     </ConfigParameter>
 
     <ConfigParameter>

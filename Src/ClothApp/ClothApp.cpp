@@ -179,7 +179,7 @@ void ClothApp::run()
 
     camera.Position = glm::vec3(-100, 10, -5);
 
-    exampleToUpdate = Shapes::Cube::vertices;
+    exampleToUpdate = Shapes::BatchedCube::vertices;
 
     Transform cubeTransform = Transform::origin();
     Transform subDataCubeTransform = Transform::origin();
@@ -188,7 +188,7 @@ void ClothApp::run()
     Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
     cube.transform.scaleTransform(10, 10, 10);
 
-    SubDataObject subDataCube(exampleToUpdate, Shapes::Cube::indices, subDataCubeTransform);
+    SubDataObject subDataCube(exampleToUpdate,Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
     subDataCube.transform.scaleTransform(10, 10, 10);
     subDataCube.transform.translate(glm::vec3(10, 10, 10));
 
@@ -233,7 +233,7 @@ void ClothApp::run()
         glEnable(GL_DEPTH_TEST);
         setViewPerspective(camera);
 
-        subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::Cube::indices);
+        subDataCube.Draw(subDataShader3D, exampleToUpdate,Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
         cube.Draw(shader3D);
 
         glDisable(GL_DEPTH_TEST);
