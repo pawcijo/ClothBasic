@@ -6,6 +6,10 @@
 #include <map>
 #include <vector>
 
+#include "Cloth/Model/Cloth.hpp"
+#include "Cloth/ClothController/ClothController.hpp"
+#include "Util/ClothDebugInfo/ClothDebugInfo.hpp"
+
 static std::map<int,bool> keyPressedStatus;
 static bool mouseToUpdate = false;
 static double posx;
@@ -15,8 +19,12 @@ static glm::vec3 globalCameraPosition;
 static float globalCameraYaw;
 static float globalCameraPitch;
 
+const float TIME_STEPSIZE2 = 0.5*0.5;
+
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
+
+
 
 class ClothApp
 {
@@ -45,6 +53,10 @@ class ClothApp
     //example vertices
     std::vector<float> exampleToUpdate;
 
+    //Cloth
+    Cloth cloth1;
+    ClothController clothController;
+    ClothDebugInfo clothDebugInfo;
     public:
 
     void run();

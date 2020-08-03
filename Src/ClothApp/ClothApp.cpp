@@ -45,7 +45,11 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
     posy = ypos;
 }
 
-ClothApp::ClothApp(Window &window) : windowRef(window), camera(Camera())
+ClothApp::ClothApp(Window &window) : windowRef(window),
+                                     camera(Camera()),
+                                     cloth1(10, 10, 10, 10),
+                                     clothController(cloth1),
+                                     clothDebugInfo(cloth1, clothController)
 {
     printf("ClothApp created .\n");
     glfwSetKeyCallback(window.window, key_callback);
@@ -85,6 +89,15 @@ void ClothApp::processMouse()
 
 void ClothApp::processKeys()
 {
+    if (glfwGetKey(windowRef.window, GLFW_KEY_P) == GLFW_PRESS)
+    {
+        clothDebugInfo.ShowLastRowInfo();
+    }
+
+      if (glfwGetKey(windowRef.window, GLFW_KEY_M) == GLFW_PRESS)
+    {
+        clothDebugInfo.MoveLastRow();
+    }
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_W) == GLFW_PRESS)
     {
@@ -189,6 +202,12 @@ void ClothApp::run()
         {
             processKeys();
             processMouse();
+
+            cloth1.AddForce(glm::vec3(0, -0.2, 0) *
+                            TIME_STEPSIZE2); // TODO change  time_step to reliable time
+
+            cloth1.Update(TIME_STEPSIZE2, 5);
+
             globalCameraPosition = camera.Position;
             globalCameraYaw = camera.Yaw;
             globalCameraPitch = camera.Pitch;

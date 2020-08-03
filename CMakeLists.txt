@@ -42,7 +42,6 @@ add_definitions(
 add_executable(ClothBase 
     ClothBase.cpp
 	Src/Window/Window.cpp
-	Src/ClothApp/ClothApp.cpp
 	Src/Util/Config/ConfigUtils.cpp
 	Src/Shader/Shader.cpp
 	Src/Camera/Camera.cpp
@@ -52,6 +51,14 @@ add_executable(ClothBase
 	Src/HelloWorld/Circle/Circle.cpp
 	Src/Transform/Transform.cpp
 
+	Src/Util/ClothDebugInfo/ClothDebugInfo.cpp
+
+	Src/Cloth/Particle/Particle.cpp
+	Src/Cloth/Model/Cloth.cpp
+	Src/Cloth/Constraint/Constraint.cpp
+	Src/Cloth/ClothController/ClothController.cpp 
+
+	Src/ClothApp/ClothApp.cpp
 )
 
 target_link_libraries(ClothBase
