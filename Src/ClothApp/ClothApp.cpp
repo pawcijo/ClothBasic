@@ -169,9 +169,11 @@ void ClothApp::run()
     camera.Position = glm::vec3(-100, 10, -5);
 
     exampleToUpdate = Shapes::BatchedCube::vertices;
+    plane = Shapes::Rectangle::vertices;
 
     Transform cubeTransform = Transform::origin();
     Transform subDataCubeTransform = Transform::origin();
+    Transform subDataPlaneTransform = Transform::origin();
     Transform circleTransform = Transform::origin();
 
     Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
@@ -180,6 +182,10 @@ void ClothApp::run()
     SubDataObject subDataCube(exampleToUpdate, Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
     subDataCube.transform.scaleTransform(10, 10, 10);
     subDataCube.transform.translate(glm::vec3(10, 10, 10));
+
+    SubDataObject subDataPlace(plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices, subDataPlaneTransform);
+    subDataPlace.transform.scaleTransform(10, 10, 10);
+    subDataPlace.transform.translate(glm::vec3(10, 10, 10));
 
     Circle circle(170, 0.5, circleTransform);
     circleTransform.translate(glm::vec3(-0.93, 0.89, 0));
@@ -229,6 +235,7 @@ void ClothApp::run()
         setViewPerspective(camera);
 
         subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
+        subDataPlace.Draw(subDataShader3D,plane,Shapes::Rectangle::colors,Shapes::Rectangle::indices);
         cube.Draw(shader3D);
 
         glDisable(GL_DEPTH_TEST);

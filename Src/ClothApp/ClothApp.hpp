@@ -52,6 +52,8 @@ class ClothApp
 
     //example vertices
     std::vector<float> exampleToUpdate;
+    //
+    std::vector<float> plane;
 
     //Cloth
     Cloth cloth1;
