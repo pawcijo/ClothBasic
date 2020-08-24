@@ -17,11 +17,11 @@ class SubDataObject
     
 public:
     Transform& transform;
-    SubDataObject(std::vector<float>& verticies,std::vector<float>& colors,std::vector<unsigned>& indicies,Transform& transform);
+    SubDataObject(std::vector<float> verticies,std::vector<float> colors,std::vector<unsigned> indicies,Transform& transform);
   
     ~SubDataObject();
     void Draw(Shader *shaderProgram,
-    std::vector<float>& verticies,
-    std::vector<float>& colors,
-    std::vector<unsigned>& indicies);
+    std::vector<float> verticies,
+    std::vector<float> colors,
+    std::vector<unsigned> indicies);
 };

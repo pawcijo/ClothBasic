@@ -7,6 +7,52 @@
 #include <glm/glm.hpp>
 #include <cmath>
 
+std::vector<unsigned> genereteIndicies(std::pair<unsigned, unsigned> clothSize)
+{
+    std::vector<unsigned> clothIndicies;
+
+    for (int y = 1; y < clothSize.second; y++)
+    {
+        for (int x = 1; x < clothSize.first; x++)
+        {
+            // First triangle  P3-P1-P2
+            unsigned P1 = (y - 1) * clothSize.first + x - 1;
+            unsigned P2 = (y - 1) * clothSize.first + x;
+            unsigned P3 = y * clothSize.first + x - 1;
+            unsigned P4 = y * clothSize.first + x;
+
+            /*
+      P1 -  P2
+       |  /  |
+      P3  - P4
+      */
+
+            // Second triangle  P2-P4-P3
+            clothIndicies.push_back(P3);
+            clothIndicies.push_back(P1);
+            clothIndicies.push_back(P2);
+
+            clothIndicies.push_back(P2);
+            clothIndicies.push_back(P4);
+            clothIndicies.push_back(P3);
+        }
+    }
+    return clothIndicies;
+}
+
+std::vector<float> generateClothColor(unsigned particleSize)
+{
+    std::vector<float> colors;
+
+    for (int x = 0; x < particleSize; x++)
+    {
+        colors.push_back(1.0f); //white cloth
+        colors.push_back(1.0f);
+        colors.push_back(1.0f);
+    }
+    return colors;
+}
+
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
@@ -47,7 +93,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 
 ClothApp::ClothApp(Window &window) : windowRef(window),
                                      camera(Camera()),
-                                     cloth1(10, 10, 10, 10),
+                                     cloth1(10, 10, 5, 5),
                                      clothController(cloth1),
                                      clothDebugInfo(cloth1, clothController)
 {
@@ -94,7 +140,7 @@ void ClothApp::processKeys()
         clothDebugInfo.ShowLastRowInfo();
     }
 
-      if (glfwGetKey(windowRef.window, GLFW_KEY_M) == GLFW_PRESS)
+    if (glfwGetKey(windowRef.window, GLFW_KEY_M) == GLFW_PRESS)
     {
         clothDebugInfo.MoveLastRow();
     }
@@ -167,18 +213,25 @@ void ClothApp::run()
 {
 
     camera.Position = glm::vec3(-100, 10, -5);
-
     exampleToUpdate = Shapes::BatchedCube::vertices;
     plane = Shapes::Rectangle::vertices;
+
+    std::vector<unsigned> clothIndicies;
+    std::vector<float> clothColorBuffer;
+
+    clothColorBuffer = generateClothColor(cloth1.GetParticles().size());
+    clothIndicies = genereteIndicies(cloth1.GetClothSize());
 
     Transform cubeTransform = Transform::origin();
     Transform subDataCubeTransform = Transform::origin();
     Transform subDataPlaneTransform = Transform::origin();
     Transform circleTransform = Transform::origin();
+    Transform clothTransform = Transform::origin();
 
     Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
     cube.transform.scaleTransform(10, 10, 10);
-
+    cube.transform.translate(glm::vec3(-15.0f,0.0f,0.0f));
+    
     SubDataObject subDataCube(exampleToUpdate, Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
     subDataCube.transform.scaleTransform(10, 10, 10);
     subDataCube.transform.translate(glm::vec3(10, 10, 10));
@@ -186,6 +239,10 @@ void ClothApp::run()
     SubDataObject subDataPlace(plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices, subDataPlaneTransform);
     subDataPlace.transform.scaleTransform(10, 10, 10);
     subDataPlace.transform.translate(glm::vec3(10, 10, 10));
+
+    SubDataObject subDataCloth(clothController.GetVertexInfo(), clothColorBuffer, clothIndicies, clothTransform);
+    subDataCloth.transform.scaleTransform(1, 1, 1);
+    subDataCloth.transform.translate(glm::vec3(1, 1, 1));
 
     Circle circle(170, 0.5, circleTransform);
     circleTransform.translate(glm::vec3(-0.93, 0.89, 0));
@@ -235,7 +292,8 @@ void ClothApp::run()
         setViewPerspective(camera);
 
         subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
-        subDataPlace.Draw(subDataShader3D,plane,Shapes::Rectangle::colors,Shapes::Rectangle::indices);
+        subDataPlace.Draw(subDataShader3D, plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices);
+        subDataCloth.Draw(subDataShader3D,clothController.GetVertexInfo(),clothColorBuffer,clothIndicies);
         cube.Draw(shader3D);
 
         glDisable(GL_DEPTH_TEST);

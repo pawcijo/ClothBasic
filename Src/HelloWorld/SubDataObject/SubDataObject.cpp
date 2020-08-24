@@ -4,7 +4,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Src/Shapes/Shapes.hpp"
 
-SubDataObject::SubDataObject(std::vector<float> &verticies,std::vector<float> &colors, std::vector<unsigned> &indicies, Transform &aTransform) : transform(aTransform)
+SubDataObject::SubDataObject(std::vector<float> verticies,std::vector<float> colors, std::vector<unsigned> indicies, Transform &aTransform) : transform(aTransform)
 {
     indiciesSize = indicies.size() * sizeof(unsigned);
 
@@ -43,10 +43,11 @@ SubDataObject::SubDataObject(std::vector<float> &verticies,std::vector<float> &c
 */
 }
 
-void SubDataObject::Draw(Shader *shader, std::vector<float> &verticies,std::vector<float> &colors, std::vector<unsigned> &indicies)
+void SubDataObject::Draw(Shader *shader, std::vector<float> verticies,std::vector<float> colors, std::vector<unsigned> indicies)
 {
     glUseProgram(shader->shaderProgramID);
 
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     unsigned int transformLoc = glGetUniformLocation(shader->shaderProgramID, "transform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform.getTransform()));
 
