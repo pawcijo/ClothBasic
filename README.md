@@ -31,10 +31,10 @@
 
 ### Tutorial
 
-**Press Q and E to move subData cube.**
-**Press M to add force at the last row of the cloth.**
-**Press P to show last row info (need fix)**
-**WSAD and mouse to move around camera.**
+**Press Q and E to move subData cube.<br/>**
+**Press M to add force at the last row of the cloth.<br/>**
+**Press P to show last row info (need fix)<br/>**
+**WSAD and mouse to move around camera.<br/>**
 
 
 ### Used libs and versions :
