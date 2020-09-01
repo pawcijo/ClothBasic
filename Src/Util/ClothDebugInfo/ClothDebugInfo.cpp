@@ -23,7 +23,6 @@ void ClothDebugInfo::MoveLastRow() {
   auto clothSize = cloth.GetClothSize();
   auto x = clothSize.first / 2.0f;
   auto y = clothSize.second;
-  std::cout << "Last row moved :)  [particle : x:" << x << " y:" << y << "]\n";
 
   for (int i = 0; i < x; i++) {
     clothController.AddForceToParticle(glm::vec3(0, 0, 10) * 0.25f, i, y-i);
