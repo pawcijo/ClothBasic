@@ -67,8 +67,8 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
     }
   }
 
-  // making the upper left most three and right most three particles unmovable
-  for (int i = 0; i < 3; i++) {
+  // making the upper left most two and right most two particles unmovable
+  for (int i = 0; i < 2; i++) {
     GetParticle(0 + i, 0)->SetMoveable(false);
     GetParticle(particlesWidthNumber - 1 - i, 0)->SetMoveable(false);
   }
@@ -93,9 +93,6 @@ void Cloth::Update(float elapsedTime, int CONSTRAINT_ITERATIONS) {
   }
 }
 
-void Cloth::Render(Shader *shaderprogram) {
-
-}
 
  // X Y
 std::pair<unsigned, unsigned> Cloth::GetClothSize() {

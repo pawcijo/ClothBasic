@@ -42,10 +42,5 @@ public:
   */
   void Update(float elapsedTime,int CONSTRAINT_ITERATIONS);
 
-  /*
-    Function Render  - old display
-    called each frame
-  */
-  void Render(Shader *shaderprogram);
   void AddForce(glm::vec3 force); // add gravity or any other force to all particles
 };

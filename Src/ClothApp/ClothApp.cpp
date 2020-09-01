@@ -93,7 +93,7 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 
 ClothApp::ClothApp(Window &window) : windowRef(window),
                                      camera(Camera()),
-                                     cloth1(10, 10, 5, 5),
+                                     cloth1(10, 10, 12, 10),
                                      clothController(cloth1),
                                      clothDebugInfo(cloth1, clothController)
 {

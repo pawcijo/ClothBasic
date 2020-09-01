@@ -47,7 +47,8 @@ void SubDataObject::Draw(Shader *shader, std::vector<float> verticies,std::vecto
 {
     glUseProgram(shader->shaderProgramID);
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //  wireframe mode         
+    //  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     unsigned int transformLoc = glGetUniformLocation(shader->shaderProgramID, "transform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform.getTransform()));
 
