@@ -21,7 +21,7 @@ void ClothDebugInfo::ShowLastRowInfo() {
 
 void ClothDebugInfo::MoveLastRow() {
   auto clothSize = cloth.GetClothSize();
-  auto x = clothSize.first / 2.0f;
+  auto x = clothSize.first;
   auto y = clothSize.second;
 
   for (int i = 0; i < x; i++) {
