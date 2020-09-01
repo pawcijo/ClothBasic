@@ -28,6 +28,15 @@
 
 **cmake -G "Visual Studio 15 2017" ..**
 
+
+### Tutorial
+
+**Press Q and E to move subData cube.**
+**Press M to add force at the last row of the cloth.**
+**Press P to show last row info (need fix)**
+**WSAD and mouse to move around camera.**
+
+
 ### Used libs and versions :
 
  * **glew-1.13.0**

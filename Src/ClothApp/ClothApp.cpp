@@ -46,7 +46,7 @@ std::vector<float> generateClothColor(unsigned particleSize)
 
     for (int x = 0; x < particleSize; x++)
     {
-        colors.push_back(x*0.01f); //white cloth
+        colors.push_back(x*0.01f);
         colors.push_back(x*0.01f);
         colors.push_back(x*0.01f);
     }
