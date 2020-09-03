@@ -103,6 +103,7 @@ void Cloth::AddForceToParticle(glm::vec3 force, unsigned x, unsigned y) {
 
   Particle *particle = GetParticle(x, y);
   particle->AddForce(force);
+  
 }
 
 void Cloth::SetForceToParticle(glm::vec3 force, unsigned x, unsigned y) {

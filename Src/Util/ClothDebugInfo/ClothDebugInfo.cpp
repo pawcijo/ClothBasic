@@ -21,10 +21,8 @@ void ClothDebugInfo::ShowLastRowInfo() {
 
 void ClothDebugInfo::MoveLastRow() {
   auto clothSize = cloth.GetClothSize();
-  auto x = clothSize.first;
+  auto x = clothSize.first /2;
   auto y = clothSize.second;
 
-  for (int i = 0; i < x; i++) {
-    clothController.AddForceToParticle(glm::vec3(0, 0, 10) * 0.25f, i, y-i);
-  }
+   clothController.AddForceToParticle(glm::vec3(0, 0, 10) * 0.25f, x, y-1);
 }
