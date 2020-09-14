@@ -42,7 +42,7 @@ Shader::Shader(std::string vertex_file_path, std::string fragment_file_path, std
 	if (ComputeShaderStream.is_open())
 	{
 		std::stringstream sstr;
-		sstr << FragmentShaderStream.rdbuf();
+		sstr << ComputeShaderStream.rdbuf();
 		ComputeShaderCode = sstr.str();
 		ComputeShaderStream.close();
 	}
