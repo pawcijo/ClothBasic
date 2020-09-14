@@ -1,57 +1,13 @@
 #include "Src/ClothApp/ClothApp.hpp"
+
 #include "Src/HelloWorld/Square/Square.hpp"
 #include "Src/HelloWorld/Object3D/Object3D.hpp"
 #include "Src/HelloWorld/SubDataObject/SubDataObject.hpp"
 #include "Src/HelloWorld/Circle/Circle.hpp"
 #include "Src/Shapes/Shapes.hpp"
+#include "Src/Util/ClothGeneration/ClothGeneration.hpp"
 #include <glm/glm.hpp>
 #include <cmath>
-
-std::vector<unsigned> genereteIndicies(std::pair<unsigned, unsigned> clothSize)
-{
-    std::vector<unsigned> clothIndicies;
-
-    for (int y = 1; y < clothSize.second; y++)
-    {
-        for (int x = 1; x < clothSize.first; x++)
-        {
-            // First triangle  P3-P1-P2
-            unsigned P1 = (y - 1) * clothSize.first + x - 1;
-            unsigned P2 = (y - 1) * clothSize.first + x;
-            unsigned P3 = y * clothSize.first + x - 1;
-            unsigned P4 = y * clothSize.first + x;
-
-            /*
-      P1 -  P2
-       |  /  |
-      P3  - P4
-      */
-
-            // Second triangle  P2-P4-P3
-            clothIndicies.push_back(P3);
-            clothIndicies.push_back(P1);
-            clothIndicies.push_back(P2);
-
-            clothIndicies.push_back(P2);
-            clothIndicies.push_back(P4);
-            clothIndicies.push_back(P3);
-        }
-    }
-    return clothIndicies;
-}
-
-std::vector<float> generateClothColor(unsigned particleSize)
-{
-    std::vector<float> colors;
-
-    for (int x = 0; x < particleSize; x++)
-    {
-        colors.push_back(x*0.01f);
-        colors.push_back(x*0.01f);
-        colors.push_back(x*0.01f);
-    }
-    return colors;
-}
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
@@ -103,8 +59,28 @@ ClothApp::ClothApp(Window &window) : windowRef(window),
     shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
     shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
     subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
+    clothShader = new Shader("","","Shaders/SubDataCloth3D.comp");
     lastX = windowRef.iHeight / 2;
     lastY = windowRef.iWidth / 2;
+
+      { // query up the workgroups
+    int work_grp_size[3], work_grp_inv;
+
+    // maximum global work group (total work in a dispatch)
+    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &work_grp_size[0] );
+    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &work_grp_size[1] );
+    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &work_grp_size[2] );
+    printf( "max global (total) work group size x:%i y:%i z:%i\n", work_grp_size[0], work_grp_size[1], work_grp_size[2] );
+    // maximum local work group (one shader's slice)
+    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &work_grp_size[0] );
+    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &work_grp_size[1] );
+    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &work_grp_size[2] );
+    printf( "max local (in one shader) work group sizes x:%i y:%i z:%i\n", work_grp_size[0], work_grp_size[1], work_grp_size[2] );
+    // maximum compute shader invocations (x * y * z)
+    glGetIntegerv( GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &work_grp_inv );
+    printf( "max computer shader invocations %i\n", work_grp_inv );
+  }
+
 }
 
 void ClothApp::processMouse()
@@ -270,6 +246,9 @@ void ClothApp::run()
                             TIME_STEPSIZE2); // TODO change  time_step to reliable time
 
             cloth1.Update(TIME_STEPSIZE2, 5);
+
+            clothShader->use();
+            glDispatchCompute(512/16, 512/16, 1);
 
             globalCameraPosition = camera.Position;
             globalCameraYaw = camera.Yaw;

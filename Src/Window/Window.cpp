@@ -15,8 +15,8 @@ Window::Window(uint16_t Width, uint16_t height, const char *title) : iWidth(Widt
 
     //TODO ADD TO CONFIG 
 	glfwWindowHint(GLFW_SAMPLES,4);			   // 4x antialiasing
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // We want OpenGL 4.3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4); // 4.5
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL
 
 	// Open a window and create its OpenGL context

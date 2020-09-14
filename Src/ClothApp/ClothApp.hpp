@@ -39,6 +39,7 @@ class ClothApp
     Shader *shader2D = nullptr;
     Shader *shader3D = nullptr;
     Shader *subDataShader3D = nullptr;
+    Shader *clothShader = nullptr;
 
     //Camera
     Camera camera;
@@ -59,6 +60,7 @@ class ClothApp
     Cloth cloth1;
     ClothController clothController;
     ClothDebugInfo clothDebugInfo;
+    
     public:
 
     void run();

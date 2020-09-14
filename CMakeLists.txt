@@ -52,6 +52,7 @@ add_executable(ClothBase
 	Src/Transform/Transform.cpp
 
 	Src/Util/ClothDebugInfo/ClothDebugInfo.cpp
+	Src/Util/ClothGeneration/ClothGeneration.cpp
 
 	Src/Cloth/Particle/Particle.cpp
 	Src/Cloth/Model/Cloth.cpp
