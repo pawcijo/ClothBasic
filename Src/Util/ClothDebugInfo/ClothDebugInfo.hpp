@@ -7,7 +7,7 @@ class ClothDebugInfo
 public:
     ClothDebugInfo(Cloth &cloth_arg, ClothController &clothController_arg);
     void ShowLastRowInfo();
-    void MoveLastRow();
+    void MoveLastRow(float pushForce);
 
 private:
     Cloth &cloth;

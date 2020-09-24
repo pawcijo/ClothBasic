@@ -2,6 +2,9 @@
 
 #include "Src/Shader/Shader.hpp"
 #include "Src/Transform/Transform.hpp"
+
+#include "Src/Util/DrawMode/DrawMode.hpp"
+
 #include <vector>
 class Circle
 {
@@ -11,10 +14,12 @@ class Circle
     unsigned VBO; //simpy object of verticies
 
     unsigned verticiesSize;
+
+    DrawMode drawmode;
     
 public:
     Transform& transform;
-    Circle(int verticiesNumber,float angle,Transform& transform);
+    Circle(int verticiesNumber,float angle,Transform& transform,DrawMode drawmode = DrawMode::EDefault);
     ~Circle();
     void Draw(Shader *shaderProgram);
 };

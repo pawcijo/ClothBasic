@@ -6,18 +6,20 @@
 
 #define MY_PI 3.14159265358979
 
-Circle::Circle(int circleVerticies,float radius,Transform& aTransform): transform(aTransform)
+Circle::Circle(int circleVerticies, float radius, Transform &aTransform, DrawMode aDrawmode) : transform(aTransform)
 {
+    drawmode = aDrawmode;
+
     std::vector<float> verticies;
     for (double i = 0; i < 2 * MY_PI; i += 2 * MY_PI / circleVerticies)
     {
         verticies.push_back(cos(i) * radius); //X coordinate
         verticies.push_back(sin(i) * radius); //Y coordinate
-        verticies.push_back(0.0);            // Z
+        verticies.push_back(0.0);             // Z
 
-        verticies.push_back(0.9);            // R
-        verticies.push_back(0.01);           // G
-        verticies.push_back(0.01);           // B
+        verticies.push_back(0.9);  // R
+        verticies.push_back(0.01); // G
+        verticies.push_back(0.01); // B
     }
     verticiesSize = verticies.size();
 
@@ -47,6 +49,17 @@ Circle::Circle(int circleVerticies,float radius,Transform& aTransform): transfor
 
 void Circle::Draw(Shader *shader)
 {
+
+    //  wireframe mode
+    if (drawmode == DrawMode::EWireFrame)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
     glUseProgram(shader->shaderProgramID);
 
     unsigned int transformLoc = glGetUniformLocation(shader->shaderProgramID, "transform");

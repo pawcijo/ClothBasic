@@ -48,11 +48,54 @@
         <Value>-90.0</Value>
     </ConfigParameter>
 
+
+        <ConfigParameter>
+        <Type>U</Type>
+        <Name>ParticleWidthNumber</Name>
+        <Value>50</Value>
+    </ConfigParameter>
+
+     <ConfigParameter>
+        <Type>U</Type>
+        <Name>ParticleHeightNumber</Name>
+        <Value>50</Value>
+    </ConfigParameter>
+
+       <ConfigParameter>
+        <Type>F</Type>
+        <Name>ClothWidth</Name>
+        <Value>100.0</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>F</Type>
+        <Name>ClothHeight</Name>
+        <Value>100.0</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>F</Type>
+        <Name>ForceForPushingCloth</Name>
+        <Value>5.0</Value>
+    </ConfigParameter>
+
+    <ConfigParameter>
+        <Type>U</Type>
+        <Name>Drawmode</Name>
+        <Value>1</Value>
+       <!--
+           Possible options:
+        0  -  Default
+        1  -  WireFrame
+        -->
+    </ConfigParameter>
+
+
 </Config>
 
 <!-- types I - int
            U - unsigned
            F - float
            D - dobule
-           S - std::string>
+           S - std::string-->
 

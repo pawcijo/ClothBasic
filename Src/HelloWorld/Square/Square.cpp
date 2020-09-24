@@ -3,8 +3,10 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-Square::Square()
+Square::Square(DrawMode aDrawmode)
 {
+    drawmode = aDrawmode;
+
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -35,6 +37,16 @@ Square::Square()
 
 void Square::Draw(Shader *shader)
 {
+    //  wireframe mode
+    if (drawmode == DrawMode::EWireFrame)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
     glUseProgram(shader->shaderProgramID);
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, sizeof(SquareSpace::indices), GL_UNSIGNED_INT, 0);

@@ -3,9 +3,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-Object3D::Object3D(std::vector<float>& verticies,std::vector<unsigned>& indicies,Transform& aTransform): transform(aTransform)
+Object3D::Object3D(std::vector<float> &verticies, std::vector<unsigned> &indicies, Transform &aTransform, DrawMode aDrawmode) : transform(aTransform)
 {
-    indiciesSize =  indicies.size() * sizeof(unsigned);
+    drawmode = aDrawmode;
+
+    indiciesSize = indicies.size() * sizeof(unsigned);
 
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -23,7 +25,7 @@ Object3D::Object3D(std::vector<float>& verticies,std::vector<unsigned>& indicies
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float)));
-    
+
     /*
     params:  1 (0) attrib number - layout location
              2 (3) attrib size  [ 3 floats for vec3 x y z]
@@ -32,17 +34,26 @@ Object3D::Object3D(std::vector<float>& verticies,std::vector<unsigned>& indicies
              5 ( 6 * sizeof(float) )  the space between consecutive vertex attributes
              6 ((void *)0) - offset of position data
     */
-
-
 }
 
-void Object3D::Draw(Shader *shader/*std::vector<glm::vec3>& verticies*/)
+void Object3D::Draw(Shader *shader /*std::vector<glm::vec3>& verticies*/)
 {
+
+    //  wireframe mode
+    if (drawmode == DrawMode::EWireFrame)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
     glUseProgram(shader->shaderProgramID);
- 
+
     unsigned int transformLoc = glGetUniformLocation(shader->shaderProgramID, "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform.getTransform()));
- 
+    glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform.getTransform()));
+
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, indiciesSize, GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);

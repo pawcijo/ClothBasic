@@ -2,6 +2,8 @@
 
 #include "Src/Shader/Shader.hpp"
 
+#include "Src/Util/DrawMode/DrawMode.hpp"
+
 namespace SquareSpace{
 
   static float vertices[] = {
@@ -26,8 +28,10 @@ class Square
     // Element buffer object
     unsigned EBO; // simply object of indicies
 
+     DrawMode drawmode;
+
 public:
-    Square();
+    Square(DrawMode drawmode = DrawMode::EDefault);
     ~Square();
     void Draw(Shader *shaderProgram);
 };

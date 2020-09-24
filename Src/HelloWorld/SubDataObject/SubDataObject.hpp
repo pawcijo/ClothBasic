@@ -3,25 +3,31 @@
 #include "Src/Shader/Shader.hpp"
 #include "Src/Transform/Transform.hpp"
 
+#include "Src/Util/DrawMode/DrawMode.hpp"
+
 #include <vector>
 class SubDataObject
 {
 
-    unsigned  objectBuffer;
-    unsigned  vertexArrayObject;
-    unsigned  colorArrayObject;
+    unsigned objectBuffer;
+    unsigned vertexArrayObject;
+    unsigned colorArrayObject;
 
-    unsigned  indiciesSize;
-    unsigned  objectIndexByteOffset;
+    unsigned indiciesSize;
+    unsigned objectIndexByteOffset;
+    DrawMode drawmode;
 
-    
 public:
-    Transform& transform;
-    SubDataObject(std::vector<float> verticies,std::vector<float> colors,std::vector<unsigned> indicies,Transform& transform);
-  
+    Transform &transform;
+    SubDataObject(std::vector<float> verticies,
+                  std::vector<float> colors,
+                  std::vector<unsigned> indicies,
+                  Transform &transform,
+                  DrawMode drawmode = DrawMode::EDefault);
+
     ~SubDataObject();
     void Draw(Shader *shaderProgram,
-    std::vector<float> verticies,
-    std::vector<float> colors,
-    std::vector<unsigned> indicies);
+              std::vector<float> verticies,
+              std::vector<float> colors,
+              std::vector<unsigned> indicies);
 };

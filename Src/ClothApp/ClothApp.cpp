@@ -1,5 +1,7 @@
 #include "Src/ClothApp/ClothApp.hpp"
 
+#include "Src/Util/Config/ConfigUtils.hpp"
+
 #include "Src/HelloWorld/Square/Square.hpp"
 #include "Src/HelloWorld/Object3D/Object3D.hpp"
 #include "Src/HelloWorld/SubDataObject/SubDataObject.hpp"
@@ -49,38 +51,43 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 
 ClothApp::ClothApp(Window &window) : windowRef(window),
                                      camera(Camera()),
-                                     cloth1(10, 10, 12, 10),
+                                     cloth1(ConfigUtils::GetValueFromMap<float>("ClothWidth", ConfigUtils::GlobalConfigMap),
+                                            ConfigUtils::GetValueFromMap<float>("ClothHeight", ConfigUtils::GlobalConfigMap),
+                                            ConfigUtils::GetValueFromMap<unsigned>("ParticleWidthNumber", ConfigUtils::GlobalConfigMap),
+                                            ConfigUtils::GetValueFromMap<unsigned>("ParticleHeightNumber", ConfigUtils::GlobalConfigMap)),
                                      clothController(cloth1),
                                      clothDebugInfo(cloth1, clothController)
 {
+
     printf("ClothApp created .\n");
     glfwSetKeyCallback(window.window, key_callback);
     glfwSetCursorPosCallback(window.window, cursor_position_callback);
+
+    pushingForce = ConfigUtils::GetValueFromMap<float>("ForceForPushingCloth", ConfigUtils::GlobalConfigMap);
     shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
     shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
     subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
-    clothShader = new Shader("","","Shaders/SubDataCloth3D.comp");
+    clothShader = new Shader("", "", "Shaders/SubDataCloth3D.comp");
     lastX = windowRef.iHeight / 2;
     lastY = windowRef.iWidth / 2;
 
-      { // query up the workgroups
-    int work_grp_size[3], work_grp_inv;
+    { // query up the workgroups
+        int work_grp_size[3], work_grp_inv;
 
-    // maximum global work group (total work in a dispatch)
-    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &work_grp_size[0] );
-    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &work_grp_size[1] );
-    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &work_grp_size[2] );
-    printf( "max global (total) work group size x:%i y:%i z:%i\n", work_grp_size[0], work_grp_size[1], work_grp_size[2] );
-    // maximum local work group (one shader's slice)
-    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &work_grp_size[0] );
-    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &work_grp_size[1] );
-    glGetIntegeri_v( GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &work_grp_size[2] );
-    printf( "max local (in one shader) work group sizes x:%i y:%i z:%i\n", work_grp_size[0], work_grp_size[1], work_grp_size[2] );
-    // maximum compute shader invocations (x * y * z)
-    glGetIntegerv( GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &work_grp_inv );
-    printf( "max computer shader invocations %i\n", work_grp_inv );
-  }
-
+        // maximum global work group (total work in a dispatch)
+        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &work_grp_size[0]);
+        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &work_grp_size[1]);
+        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &work_grp_size[2]);
+        printf("max global (total) work group size x:%i y:%i z:%i\n", work_grp_size[0], work_grp_size[1], work_grp_size[2]);
+        // maximum local work group (one shader's slice)
+        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &work_grp_size[0]);
+        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &work_grp_size[1]);
+        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &work_grp_size[2]);
+        printf("max local (in one shader) work group sizes x:%i y:%i z:%i\n", work_grp_size[0], work_grp_size[1], work_grp_size[2]);
+        // maximum compute shader invocations (x * y * z)
+        glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &work_grp_inv);
+        printf("max computer shader invocations %i\n", work_grp_inv);
+    }
 }
 
 void ClothApp::processMouse()
@@ -118,7 +125,7 @@ void ClothApp::processKeys()
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_M) == GLFW_PRESS)
     {
-        clothDebugInfo.MoveLastRow();
+        clothDebugInfo.MoveLastRow(pushingForce);
     }
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_W) == GLFW_PRESS)
@@ -204,10 +211,21 @@ void ClothApp::run()
     Transform circleTransform = Transform::origin();
     Transform clothTransform = Transform::origin();
 
+    DrawMode configDrawMode = DrawMode(ConfigUtils::GetValueFromMap<unsigned>("Drawmode", ConfigUtils::GlobalConfigMap));
+
+    if (configDrawMode == DrawMode::EWireFrame)
+    {
+        printf("Config draw mode : WireFrame \n");
+    }
+    else
+    {
+        printf("Config draw mode : Default \n");
+    }
+
     Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
     cube.transform.scaleTransform(10, 10, 10);
-    cube.transform.translate(glm::vec3(-15.0f,0.0f,0.0f));
-    
+    cube.transform.translate(glm::vec3(-15.0f, 0.0f, 0.0f));
+
     SubDataObject subDataCube(exampleToUpdate, Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
     subDataCube.transform.scaleTransform(10, 10, 10);
     subDataCube.transform.translate(glm::vec3(10, 10, 10));
@@ -216,7 +234,7 @@ void ClothApp::run()
     subDataPlace.transform.scaleTransform(10, 10, 10);
     subDataPlace.transform.translate(glm::vec3(10, 10, 10));
 
-    SubDataObject subDataCloth(clothController.GetVertexInfo(), clothColorBuffer, clothIndicies, clothTransform);
+    SubDataObject subDataCloth(clothController.GetVertexInfo(), clothColorBuffer, clothIndicies, clothTransform, configDrawMode);
     subDataCloth.transform.scaleTransform(1, 1, 1);
     subDataCloth.transform.translate(glm::vec3(1, 1, 1));
 
@@ -248,7 +266,7 @@ void ClothApp::run()
             cloth1.Update(TIME_STEPSIZE2, 5);
 
             clothShader->use();
-            glDispatchCompute(512/16, 512/16, 1);
+            glDispatchCompute(512 / 16, 512 / 16, 1);
 
             globalCameraPosition = camera.Position;
             globalCameraYaw = camera.Yaw;
@@ -272,7 +290,7 @@ void ClothApp::run()
 
         subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
         subDataPlace.Draw(subDataShader3D, plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices);
-        subDataCloth.Draw(subDataShader3D,clothController.GetVertexInfo(),clothColorBuffer,clothIndicies);
+        subDataCloth.Draw(subDataShader3D, clothController.GetVertexInfo(), clothColorBuffer, clothIndicies);
         cube.Draw(shader3D);
 
         glDisable(GL_DEPTH_TEST);

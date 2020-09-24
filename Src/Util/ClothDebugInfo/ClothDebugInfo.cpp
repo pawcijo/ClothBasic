@@ -19,10 +19,10 @@ void ClothDebugInfo::ShowLastRowInfo() {
   std::cout << "\n";
 }
 
-void ClothDebugInfo::MoveLastRow() {
+void ClothDebugInfo::MoveLastRow(float pushForce) {
   auto clothSize = cloth.GetClothSize();
   auto x = clothSize.first /2;
   auto y = clothSize.second;
 
-   clothController.AddForceToParticle(glm::vec3(0, 0, 10) * 0.25f, x, y-1);
+   clothController.AddForceToParticle(glm::vec3(0, 0, pushForce * clothSize.first) * 0.25f, x, y-1);
 }

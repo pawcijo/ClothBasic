@@ -10,7 +10,6 @@ Shader::Shader(std::string vertex_file_path, std::string fragment_file_path, std
 	GLuint ComputeShaderID;
 	if (!compute_file_path.empty())
 	{
-		printf("Just bigos : kekw \n");
 		ComputeShaderID = glCreateShader(GL_COMPUTE_SHADER);
 	}
 

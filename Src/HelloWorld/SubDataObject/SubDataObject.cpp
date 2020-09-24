@@ -4,8 +4,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include "Src/Shapes/Shapes.hpp"
 
-SubDataObject::SubDataObject(std::vector<float> verticies,std::vector<float> colors, std::vector<unsigned> indicies, Transform &aTransform) : transform(aTransform)
+SubDataObject::SubDataObject(std::vector<float> verticies,
+                             std::vector<float> colors,
+                             std::vector<unsigned> indicies,
+                             Transform &aTransform, DrawMode aDrawmode) : transform(aTransform)
 {
+    drawmode = aDrawmode;
     indiciesSize = indicies.size() * sizeof(unsigned);
 
     glGenBuffers(1, &objectBuffer);
@@ -43,28 +47,35 @@ SubDataObject::SubDataObject(std::vector<float> verticies,std::vector<float> col
 */
 }
 
-void SubDataObject::Draw(Shader *shader, std::vector<float> verticies,std::vector<float> colors, std::vector<unsigned> indicies)
+void SubDataObject::Draw(Shader *shader, std::vector<float> verticies, std::vector<float> colors, std::vector<unsigned> indicies)
 {
     glUseProgram(shader->shaderProgramID);
 
-    //  wireframe mode         
-    //  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //  wireframe mode
+    if (drawmode == DrawMode::EWireFrame)
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else
+    {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
     unsigned int transformLoc = glGetUniformLocation(shader->shaderProgramID, "transform");
     glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform.getTransform()));
 
-      glBindBuffer(GL_ARRAY_BUFFER, objectBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, objectBuffer);
     glBufferData(GL_ARRAY_BUFFER,
                  verticies.size() * sizeof(float) + colors.size() * sizeof(float) + indicies.size() * sizeof(unsigned), 0, GL_STATIC_DRAW);
 
-
-   GLsizeiptr currentoffset = 0;
+    GLsizeiptr currentoffset = 0;
     glBufferSubData(GL_ARRAY_BUFFER, 0, verticies.size() * sizeof(float), &verticies[0]);
     currentoffset += verticies.size() * sizeof(float);
     glBufferSubData(GL_ARRAY_BUFFER, currentoffset, colors.size() * sizeof(unsigned), &colors[0]);
     currentoffset += colors.size() * sizeof(float);
     objectIndexByteOffset = currentoffset;
     glBufferSubData(GL_ARRAY_BUFFER, currentoffset, indicies.size() * sizeof(unsigned), &indicies[0]);
-    
+
     glBindVertexArray(vertexArrayObject);
 
     glDrawElements(GL_TRIANGLES, indicies.size(), GL_UNSIGNED_INT, reinterpret_cast<void *>(objectIndexByteOffset));

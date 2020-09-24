@@ -9,6 +9,7 @@
 #include "Cloth/Model/Cloth.hpp"
 #include "Cloth/ClothController/ClothController.hpp"
 #include "Util/ClothDebugInfo/ClothDebugInfo.hpp"
+#include "Src/Util/DrawMode/DrawMode.hpp"
 
 static std::map<int,bool> keyPressedStatus;
 static bool mouseToUpdate = false;
@@ -21,9 +22,9 @@ static float globalCameraPitch;
 
 const float TIME_STEPSIZE2 = 0.5*0.5;
 
+
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
-
 
 
 class ClothApp
@@ -60,6 +61,7 @@ class ClothApp
     Cloth cloth1;
     ClothController clothController;
     ClothDebugInfo clothDebugInfo;
+    float pushingForce;
     
     public:
 
