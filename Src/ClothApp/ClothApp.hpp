@@ -23,6 +23,10 @@ static float globalCameraPitch;
 const float TIME_STEPSIZE2 = 0.5*0.5;
 
 
+#define NUM_PARTICLES 1024*1024 // total number of particles to move
+#define WORK_GROUP_SIZE 128 // # work-items per work-group
+
+
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
@@ -62,10 +66,14 @@ class ClothApp
     ClothController clothController;
     ClothDebugInfo clothDebugInfo;
     float pushingForce;
+    unsigned clothParticleWidth;
+    unsigned clothParticleHight;
     
     public:
 
     void run();
+    void Update();
+    void PhysixUpdate();
     void processKeys();
     void processMouse();
     void setViewPerspective(Camera &aCamera);

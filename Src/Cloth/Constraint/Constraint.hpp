@@ -18,4 +18,5 @@ public:
   solve simple constraint between 2 Particles
   */
   void ResolveConstraint();
+  float getRestDistance();
 };

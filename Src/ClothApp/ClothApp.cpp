@@ -70,24 +70,8 @@ ClothApp::ClothApp(Window &window) : windowRef(window),
     clothShader = new Shader("", "", "Shaders/SubDataCloth3D.comp");
     lastX = windowRef.iHeight / 2;
     lastY = windowRef.iWidth / 2;
-
-    { // query up the workgroups
-        int work_grp_size[3], work_grp_inv;
-
-        // maximum global work group (total work in a dispatch)
-        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 0, &work_grp_size[0]);
-        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 1, &work_grp_size[1]);
-        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_COUNT, 2, &work_grp_size[2]);
-        printf("max global (total) work group size x:%i y:%i z:%i\n", work_grp_size[0], work_grp_size[1], work_grp_size[2]);
-        // maximum local work group (one shader's slice)
-        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 0, &work_grp_size[0]);
-        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 1, &work_grp_size[1]);
-        glGetIntegeri_v(GL_MAX_COMPUTE_WORK_GROUP_SIZE, 2, &work_grp_size[2]);
-        printf("max local (in one shader) work group sizes x:%i y:%i z:%i\n", work_grp_size[0], work_grp_size[1], work_grp_size[2]);
-        // maximum compute shader invocations (x * y * z)
-        glGetIntegerv(GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &work_grp_inv);
-        printf("max computer shader invocations %i\n", work_grp_inv);
-    }
+    clothParticleWidth =  ConfigUtils::GetValueFromMap<unsigned>("ParticleWidthNumber", ConfigUtils::GlobalConfigMap);
+    clothParticleHight =  ConfigUtils::GetValueFromMap<unsigned>("ParticleHeightNumber", ConfigUtils::GlobalConfigMap);
 }
 
 void ClothApp::processMouse()
@@ -192,6 +176,22 @@ void ClothApp::setViewPerspective(Camera &aCamera)
     subDataShader3D->setMat4("view", view);
 }
 
+void ClothApp::Update()
+{
+}
+
+void ClothApp::PhysixUpdate()
+{
+
+    cloth1.AddForce(glm::vec3(0, -0.2, 0) *
+                    TIME_STEPSIZE2); // TODO change  time_step to reliable time
+
+    cloth1.Update(TIME_STEPSIZE2, 5);
+
+    clothShader->use();
+    glDispatchCompute(clothParticleWidth * clothParticleHight / 256, 1, 1);
+}
+
 void ClothApp::run()
 {
 
@@ -260,17 +260,12 @@ void ClothApp::run()
             processKeys();
             processMouse();
 
-            cloth1.AddForce(glm::vec3(0, -0.2, 0) *
-                            TIME_STEPSIZE2); // TODO change  time_step to reliable time
-
-            cloth1.Update(TIME_STEPSIZE2, 5);
-
-            clothShader->use();
-            glDispatchCompute(512 / 16, 512 / 16, 1);
+            PhysixUpdate();
 
             globalCameraPosition = camera.Position;
             globalCameraYaw = camera.Yaw;
             globalCameraPitch = camera.Pitch;
+
             next_tick += SKIP_TICKS;
             loops++;
         }

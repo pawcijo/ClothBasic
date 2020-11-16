@@ -25,3 +25,8 @@ void Constraint::ResolveConstraint() {
   p2->Move(-correctionVectorHalf);
 
 }
+
+float Constraint::getRestDistance()
+{
+  return restDistance;
+}

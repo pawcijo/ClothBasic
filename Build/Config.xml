@@ -52,13 +52,13 @@
         <ConfigParameter>
         <Type>U</Type>
         <Name>ParticleWidthNumber</Name>
-        <Value>50</Value>
+        <Value>10</Value>
     </ConfigParameter>
 
      <ConfigParameter>
         <Type>U</Type>
         <Name>ParticleHeightNumber</Name>
-        <Value>50</Value>
+        <Value>10</Value>
     </ConfigParameter>
 
        <ConfigParameter>

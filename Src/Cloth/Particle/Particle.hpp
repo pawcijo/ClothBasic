@@ -11,14 +11,15 @@ class Particle {
   glm::vec3 position;
   glm::vec3 oldPosition;
   glm::vec3 acceleration;
-  glm::vec3 accumulatedNormal;
   
   //Debug
   Transform transform;
  
 public:
-  Particle(glm::vec3 pos);
+  Particle(glm::vec3 pos, float mass = 1.0);
   Particle() = default;
+
+  bool operator==(const Particle &rhs) const;
 
 
   const Transform & GetTransformRef() const;
@@ -37,6 +38,11 @@ public:
   glm::vec3 &GetAcceleration();
   void ResetAcceleration();
 
+  glm::vec3 GetOldPositionCopy();
+  glm::vec3 GetPositionCopy();
+  glm::vec3 GetAccelerationCopy();
+
+  bool isMoveable();
   /*
     Function Move  - old offsetPos
     pos+= vector;
