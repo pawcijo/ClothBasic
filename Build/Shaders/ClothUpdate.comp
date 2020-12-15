@@ -1,0 +1,61 @@
+#version 450 core
+#extension GL_ARB_compute_shader:enable
+#extension GL_ARB_shader_storage_buffer_object:enable
+
+layout(location=0)uniform float dt;
+layout(local_size_x=128,local_size_y=1,local_size_z=1)in;
+
+layout(std430,binding=0)buffer Pos
+{
+    vec4 positions[];// array of positions
+};
+
+layout(std430,binding=1)buffer oldPos
+{
+    vec4 oldPositions[];// array of positions
+};
+
+layout(std430,binding=2)buffer acc
+{
+    vec4 accelerations[];// array of velocities
+};
+
+layout(std430,binding=3)buffer con
+{
+    vec4 constraint[];// array of constraints
+    //p1 index
+    //p2 index
+    //rest distance
+};
+
+layout(std430,binding=4)buffer mov
+{
+    vec2 constraintPart2[];// array of contrains part 2
+    //p1 moveable
+    //p2 moveable
+};
+
+void main()
+{
+    int N=int(gl_GlobalInvocationID);
+    
+    vec3 particle_position = positions[N].xyz;
+    vec3 particle_acceleration = accelerations[N].xyz;
+    bool moveable = bool(positions[N].w);
+    float DampingLenght=.01f;
+    
+    //Update
+    if(moveable)
+    {
+    vec3 temporary = particle_position;
+    vec3 position = positions[N].xyz;
+    vec3 oldPosition = oldPositions[N].xyz;
+    vec3 acceleration = accelerations[N].xyz;
+    positions[N] = vec4(position+(position-oldPosition)*(1.f-DampingLenght)+
+    acceleration*dt,positions[N].w);
+
+    oldPositions[N]=vec4(temporary,0);
+    accelerations[N]=vec4(0,0,0,0);
+}
+
+}
