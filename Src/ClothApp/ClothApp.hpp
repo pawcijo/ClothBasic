@@ -44,7 +44,9 @@ class ClothApp
     Shader *shader2D = nullptr;
     Shader *shader3D = nullptr;
     Shader *subDataShader3D = nullptr;
-    Shader *clothShader = nullptr;
+    Shader *subDataShader3D_2 = nullptr;
+    Shader *clothResolveShader = nullptr;
+    Shader *clothUpdateShader = nullptr;
 
     //Camera
     Camera camera;

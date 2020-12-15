@@ -14,13 +14,23 @@ void ClothController::AddForceToParticle(glm::vec3 force, unsigned x,
 std::vector<float> ClothController::GetVertexInfo()
 {
     std::vector<float> vertexInfo;
-    for (int i = 0;i<activeCloth.GetParticles().size(); i++)
+    for (int i = 0; i < activeCloth.GetParticles().size(); i++)
     {
-     vertexInfo.push_back(activeCloth.GetParticles()[i].GetPosition().x);
-     vertexInfo.push_back(activeCloth.GetParticles()[i].GetPosition().y);
-     vertexInfo.push_back(activeCloth.GetParticles()[i].GetPosition().z);
+        vertexInfo.push_back(activeCloth.GetParticles()[i].GetPosition().x);
+        vertexInfo.push_back(activeCloth.GetParticles()[i].GetPosition().y);
+        vertexInfo.push_back(activeCloth.GetParticles()[i].GetPosition().z);
     }
     return vertexInfo;
+}
+
+std::vector<glm::vec4> &ClothController::GetVertexInfo_2()
+{
+    return activeCloth.getPositionData();
+}
+
+Cloth &ClothController::getCloth()
+{
+    return activeCloth;
 }
 
 std::pair<unsigned, unsigned> ClothController::GetClothSize()
@@ -42,4 +52,18 @@ void ClothController::SetForceToParticle(glm::vec3 force, unsigned x,
                                          unsigned y)
 {
     activeCloth.SetForceToParticle(force, x, y);
+}
+
+void ClothController::AddForceToParticle_2(glm::vec3 force, unsigned x, unsigned y)
+{
+    activeCloth.AddForceToParticle_2(force, x, y);
+}
+void ClothController::SetForceToParticle_2(glm::vec3 force, unsigned x, unsigned y)
+{
+    activeCloth.SetForceToParticle_2(force, x, y);
+}
+
+void ClothController::Draw(Shader *shader, Transform &transform)
+{
+    activeCloth.Draw(shader,transform);
 }

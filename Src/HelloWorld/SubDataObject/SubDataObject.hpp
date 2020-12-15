@@ -25,9 +25,20 @@ public:
                   Transform &transform,
                   DrawMode drawmode = DrawMode::EDefault);
 
+    SubDataObject(std::vector<glm::vec4> verticies,
+                  std::vector<float> colors,
+                  std::vector<unsigned> indicies,
+                  Transform &transform,
+                  DrawMode drawmode = DrawMode::EDefault);
+
     ~SubDataObject();
     void Draw(Shader *shaderProgram,
               std::vector<float> verticies,
               std::vector<float> colors,
               std::vector<unsigned> indicies);
+
+    void Draw2(Shader *shader,
+               std::vector<glm::vec4> verticies,
+               std::vector<float> colors,
+               std::vector<unsigned> indicies);
 };

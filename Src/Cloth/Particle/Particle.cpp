@@ -4,8 +4,8 @@
 
 const float DampingLenght = 0.01f;
 
-Particle::Particle(glm::vec3 aPosition, float aMass)
-    : position(aPosition), oldPosition(aPosition),
+Particle::Particle(glm::vec3 aPosition, int aIndex, int aXPosition, int aYPosition, float aMass)
+    : position(aPosition), oldPosition(aPosition), index(aIndex), xPosition(aXPosition), yPosition(aYPosition),
       acceleration(glm::vec3(0, 0, 0)), mass(aMass), moveable(true),
       transform() {}
 
@@ -69,20 +69,25 @@ const Transform &Particle::GetTransformRef() const
   return transform;
 }
 
- bool Particle::isMoveable()
- {
-   return moveable;
- }
+bool Particle::isMoveable()
+{
+  return moveable;
+}
 
- bool Particle::operator==(const Particle &rhs) const
- {
-   return (position == rhs.position && 
-           acceleration == rhs.acceleration &&
-           oldPosition == rhs.oldPosition &&
-           moveable == rhs.moveable &&
-           mass == rhs.mass);
- }
+bool Particle::operator==(const Particle &rhs) const
+{
+  return (index == rhs.index);
+}
 
+std::pair<int, int> Particle::getXYPosition()
+{
+ return std::pair<int,int>(xPosition,yPosition);
+}
+
+int Particle::getIndex()
+{
+  return index;
+}
 
 Transform *Particle::GetTransformPtr()
 {

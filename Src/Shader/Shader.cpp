@@ -5,8 +5,16 @@
 Shader::Shader(std::string vertex_file_path, std::string fragment_file_path, std::string compute_file_path)
 {
 	// Create the shaders
-	GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint VertexShaderID;
+	if (!vertex_file_path.empty())
+	{
+		VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
+	}
+	GLuint FragmentShaderID;
+	if (!fragment_file_path.empty())
+	{
+		FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+	}
 	GLuint ComputeShaderID;
 	if (!compute_file_path.empty())
 	{
@@ -134,12 +142,12 @@ Shader::Shader(std::string vertex_file_path, std::string fragment_file_path, std
 		printf("%s\n", &ProgramErrorMessage[0]);
 	}
 
-	if (!compute_file_path.empty())
+	if (!vertex_file_path.empty())
 	{
 		glDetachShader(ProgramID, VertexShaderID);
 		glDeleteShader(VertexShaderID);
 	}
-	if (!compute_file_path.empty())
+	if (!fragment_file_path.empty())
 	{
 		glDetachShader(ProgramID, FragmentShaderID);
 		glDeleteShader(FragmentShaderID);

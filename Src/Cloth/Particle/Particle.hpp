@@ -8,6 +8,9 @@ class Particle {
   bool moveable;
   float mass;
 
+  int index;
+  int xPosition,yPosition;
+
   glm::vec3 position;
   glm::vec3 oldPosition;
   glm::vec3 acceleration;
@@ -16,7 +19,7 @@ class Particle {
   Transform transform;
  
 public:
-  Particle(glm::vec3 pos, float mass = 1.0);
+  Particle(glm::vec3 pos,int index,int xPosition,int yPosition, float mass = 1.0);
   Particle() = default;
 
   bool operator==(const Particle &rhs) const;
@@ -41,6 +44,9 @@ public:
   glm::vec3 GetOldPositionCopy();
   glm::vec3 GetPositionCopy();
   glm::vec3 GetAccelerationCopy();
+
+  std::pair<int,int> getXYPosition();
+  int getIndex();
 
   bool isMoveable();
   /*

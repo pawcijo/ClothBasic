@@ -11,6 +11,8 @@
 #include <glm/glm.hpp>
 #include <cmath>
 
+float dt = 1.0f / 60.0f;
+
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
@@ -67,11 +69,20 @@ ClothApp::ClothApp(Window &window) : windowRef(window),
     shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
     shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
     subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
-    clothShader = new Shader("", "", "Shaders/SubDataCloth3D.comp");
+    subDataShader3D_2 = new Shader("Shaders/SubDataCloth3D_2.vs", "Shaders/SubDataCloth3D_2.fs");
+    clothResolveShader = new Shader("", "", "Shaders/ClothResolve.comp");
+    clothUpdateShader = new Shader("", "", "Shaders/ClothUpdate.comp");
     lastX = windowRef.iHeight / 2;
     lastY = windowRef.iWidth / 2;
-    clothParticleWidth =  ConfigUtils::GetValueFromMap<unsigned>("ParticleWidthNumber", ConfigUtils::GlobalConfigMap);
-    clothParticleHight =  ConfigUtils::GetValueFromMap<unsigned>("ParticleHeightNumber", ConfigUtils::GlobalConfigMap);
+    clothParticleWidth = ConfigUtils::GetValueFromMap<unsigned>("ParticleWidthNumber", ConfigUtils::GlobalConfigMap);
+    clothParticleHight = ConfigUtils::GetValueFromMap<unsigned>("ParticleHeightNumber", ConfigUtils::GlobalConfigMap);
+
+    // Setup delta time  
+    // TODO change to elapsed time
+    clothResolveShader->use();
+    glUniform1f(0, dt);
+    clothUpdateShader->use();
+    glUniform1f(0, dt);
 }
 
 void ClothApp::processMouse()
@@ -104,12 +115,12 @@ void ClothApp::processKeys()
 {
     if (glfwGetKey(windowRef.window, GLFW_KEY_P) == GLFW_PRESS)
     {
-        clothDebugInfo.ShowLastRowInfo();
+        clothDebugInfo.ShowLastRowInfo_2();
     }
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_M) == GLFW_PRESS)
     {
-        clothDebugInfo.MoveLastRow(pushingForce);
+        clothDebugInfo.MoveLastRow_2(pushingForce);
     }
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_W) == GLFW_PRESS)
@@ -124,6 +135,13 @@ void ClothApp::processKeys()
             exampleToUpdate[i] = exampleToUpdate[i] + 1;
         }
     }
+
+        if (glfwGetKey(windowRef.window, GLFW_KEY_Y) == GLFW_PRESS)
+    {
+        clothDebugInfo.ShowMatrixY();
+    }
+
+    
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_E) == GLFW_PRESS)
     {
@@ -174,10 +192,15 @@ void ClothApp::setViewPerspective(Camera &aCamera)
     subDataShader3D->use();
     subDataShader3D->setMat4("projection", projection);
     subDataShader3D->setMat4("view", view);
+
+    subDataShader3D_2->use();
+    subDataShader3D_2->setMat4("projection", projection);
+    subDataShader3D_2->setMat4("view", view);
 }
 
 void ClothApp::Update()
 {
+
 }
 
 void ClothApp::PhysixUpdate()
@@ -188,8 +211,11 @@ void ClothApp::PhysixUpdate()
 
     cloth1.Update(TIME_STEPSIZE2, 5);
 
-    clothShader->use();
-    glDispatchCompute(clothParticleWidth * clothParticleHight / 256, 1, 1);
+    clothUpdateShader->use();
+    glDispatchCompute(cloth1.getParticlesNumber() / 128, 1, 1);
+ 
+    clothResolveShader->use();
+    glDispatchCompute(cloth1.getContraintSize() / 128, 1, 1);
 }
 
 void ClothApp::run()
@@ -286,6 +312,8 @@ void ClothApp::run()
         subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
         subDataPlace.Draw(subDataShader3D, plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices);
         subDataCloth.Draw(subDataShader3D, clothController.GetVertexInfo(), clothColorBuffer, clothIndicies);
+        //subDataCloth.Draw2(subDataShader3D_2, clothController.GetVertexInfo_2(), clothColorBuffer, clothIndicies);
+        clothController.Draw(subDataShader3D_2, subDataCloth.transform);
         cube.Draw(shader3D);
 
         glDisable(GL_DEPTH_TEST);
