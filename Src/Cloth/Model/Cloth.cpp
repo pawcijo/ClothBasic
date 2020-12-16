@@ -34,23 +34,23 @@ void Cloth::generateBuffers(unsigned particleNumber, unsigned constraintNumber)
   glGenBuffers(1, &constraintTwoSSbo);
 
   glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
-  glBufferData(GL_ARRAY_BUFFER, particleNumber * sizeof(glm::vec4), &positionData, GL_DYNAMIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, positionData.size() * sizeof(glm::vec4), &positionData, GL_DYNAMIC_DRAW);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, oldPositionSSbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, particleNumber * sizeof(glm::vec4), &oldPositionData, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, oldPositionData.size() * sizeof(glm::vec4), &oldPositionData, GL_DYNAMIC_DRAW);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, accelerationSSbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, particleNumber * sizeof(glm::vec4), &accelerationsData, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, accelerationsData.size() * sizeof(glm::vec4), &accelerationsData, GL_DYNAMIC_DRAW);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, constraintSSbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintNumber * sizeof(glm::vec4), &constraintsData, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintsData.size() * sizeof(glm::vec4), &constraintsData, GL_DYNAMIC_DRAW);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, constraintTwoSSbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintNumber * sizeof(glm::vec2), &constraintsTwoData, GL_DYNAMIC_DRAW);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintsTwoData.size() * sizeof(glm::vec2), &constraintsTwoData, GL_DYNAMIC_DRAW);
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
 
   const GLuint ssbos[] = {positionVbo, oldPositionSSbo,
