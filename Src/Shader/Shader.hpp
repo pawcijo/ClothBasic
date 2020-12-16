@@ -21,7 +21,7 @@ public:
     unsigned GetUniformLocation(const char *pUniformName);
 
     // constructor reads and builds the shader
-    Shader(std::string vertexPath, std::string fragmentPath, std::string computePath = std::string{});
+    Shader(std::string vertexPath, std::string fragmentPath, std::string computePath ="");
     ~Shader();
     // use/activate the shader
     void use();

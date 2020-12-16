@@ -32,13 +32,11 @@ void ClothDebugInfo::ShowMatrixY()
        unsigned particleNumber = particleRow + (particleColumn * clothSize.first);
       std::cout
           << std::fixed << std::setw(4) << std::setprecision(4)
-          << cloth.getPositionData()[particleNumber].y
+          << cloth.getPositionData()[particleNumber].z
           << " ";
     }
-    if ((particleRow % cloth.GetClothSize().first) == 0)
-    {
-      std::cout << std::endl;
-    }
+     std::cout << std::endl;
+
   }
   std::cout << "\n";
 }

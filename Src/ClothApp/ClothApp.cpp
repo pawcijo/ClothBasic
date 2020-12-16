@@ -52,10 +52,10 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 }
 
 ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::ConfigLoader()),
-                                     cloth1(config.GetValueFromMap<float>("ClothWidth"),
-                                            config.GetValueFromMap<float>("ClothHeight"),
-                                            config.GetValueFromMap<unsigned>("ParticleWidthNumber"),
-                                            config.GetValueFromMap<unsigned>("ParticleHeightNumber")),
+                                     cloth1(std::get<float>(config.GetValueFromMap("ClothWidth")),
+                                            std::get<float>(config.GetValueFromMap("ClothHeight")),
+                                            std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber")),
+                                            std::get<unsigned>(config.GetValueFromMap("ParticleHeightNumber"))),
                                      clothController(cloth1),
                                      clothDebugInfo(cloth1, clothController)
 {
@@ -64,7 +64,7 @@ ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::Conf
     glfwSetKeyCallback(window.window, key_callback);
     glfwSetCursorPosCallback(window.window, cursor_position_callback);
 
-    pushingForce = config.GetValueFromMap<float>("ForceForPushingCloth");
+    pushingForce = std::get<float>(config.GetValueFromMap("ForceForPushingCloth"));
     shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
     shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
     subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
@@ -73,8 +73,8 @@ ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::Conf
     clothUpdateShader = new Shader("", "", "Shaders/ClothUpdate.comp");
     lastX = windowRef.iHeight / 2;
     lastY = windowRef.iWidth / 2;
-    clothParticleWidth = config.GetValueFromMap<unsigned>("ParticleWidthNumber");
-    clothParticleHight = config.GetValueFromMap<unsigned>("ParticleHeightNumber");
+    clothParticleWidth = std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber"));
+    clothParticleHight = std::get<unsigned>(config.GetValueFromMap("ParticleHeightNumber"));
 
     // Setup delta time
     // TODO change to elapsed time
@@ -233,7 +233,7 @@ void ClothApp::run()
     Transform circleTransform = Transform::origin();
     Transform clothTransform = Transform::origin();
 
-    DrawMode configDrawMode = DrawMode(config.GetValueFromMap<unsigned>("Drawmode"));
+    DrawMode configDrawMode = DrawMode(std::get<unsigned>(config.GetValueFromMap("Drawmode")));
 
     if (configDrawMode == DrawMode::EWireFrame)
     {

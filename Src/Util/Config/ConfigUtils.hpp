@@ -13,14 +13,15 @@ namespace ConfigUtils
   public:
     ConfigLoader()
     {
+      aConfigMap = std::unordered_map<std::string, VariantType>();
       LoadConfig();
     }
 
-    template <typename T>
-    T GetValueFromMap(const std::string &name)
+    
+    VariantType GetValueFromMap(const std::string &name)
     {
-      VariantType value = aConfigMap.at(name);
-      return std::get<T>(value);
+        VariantType value = aConfigMap.at(name);
+        return value;
     }
 
     void LoadConfig();
@@ -28,6 +29,5 @@ namespace ConfigUtils
 
     std::unordered_map<std::string, VariantType> aConfigMap;
   };
-
 
 } // namespace ConfigUtils

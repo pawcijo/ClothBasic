@@ -52,25 +52,25 @@
         <ConfigParameter>
         <Type>U</Type>
         <Name>ParticleWidthNumber</Name>
-        <Value>10</Value>
+        <Value>5</Value>
     </ConfigParameter>
 
      <ConfigParameter>
         <Type>U</Type>
         <Name>ParticleHeightNumber</Name>
-        <Value>10</Value>
+        <Value>5</Value>
     </ConfigParameter>
 
        <ConfigParameter>
         <Type>F</Type>
         <Name>ClothWidth</Name>
-        <Value>100.0</Value>
+        <Value>10.0</Value>
     </ConfigParameter>
 
     <ConfigParameter>
         <Type>F</Type>
         <Name>ClothHeight</Name>
-        <Value>100.0</Value>
+        <Value>10.0</Value>
     </ConfigParameter>
 
     <ConfigParameter>
