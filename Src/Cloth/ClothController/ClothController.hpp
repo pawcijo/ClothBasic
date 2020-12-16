@@ -10,6 +10,7 @@ class ClothController
 
 public:
     ClothController(Cloth & cloth);
+    ClothController() = default;
 
     Particle & getActiveParticle();
 

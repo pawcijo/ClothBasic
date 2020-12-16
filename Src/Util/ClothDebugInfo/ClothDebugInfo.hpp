@@ -6,6 +6,7 @@ class ClothDebugInfo
 {
 public:
     ClothDebugInfo(Cloth &cloth_arg, ClothController &clothController_arg);
+    ClothDebugInfo() = default;
     void ShowLastRowInfo();
     void ShowLastRowInfo_2();
     void MoveLastRow(float pushForce);

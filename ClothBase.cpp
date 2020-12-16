@@ -7,10 +7,10 @@
 int main()
 {
 
-  ConfigUtils::LoadConfig();
+  ConfigUtils::ConfigLoader config;
 
-  unsigned WINDOW_WIDTH = ConfigUtils::GetValueFromMap<unsigned>("WINDOW_WIDTH", ConfigUtils::GlobalConfigMap);
-  unsigned WINDOW_HEIGHT = ConfigUtils::GetValueFromMap<unsigned>("WINDOW_HEIGHT", ConfigUtils::GlobalConfigMap);
+  unsigned WINDOW_WIDTH = config.GetValueFromMap<unsigned>("WINDOW_WIDTH");
+  unsigned WINDOW_HEIGHT = config.GetValueFromMap<unsigned>("WINDOW_HEIGHT");
   std::string windowName = "ClothBase";
   Window window(WINDOW_WIDTH, WINDOW_HEIGHT, windowName.c_str());
   ClothApp app(window);

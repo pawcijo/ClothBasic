@@ -10,6 +10,7 @@
 #include "Cloth/ClothController/ClothController.hpp"
 #include "Util/ClothDebugInfo/ClothDebugInfo.hpp"
 #include "Src/Util/DrawMode/DrawMode.hpp"
+#include "Util/Config/ConfigUtils.hpp"
 
 static std::map<int,bool> keyPressedStatus;
 static bool mouseToUpdate = false;
@@ -33,6 +34,9 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 class ClothApp
 {
+
+    //Config 
+    ConfigUtils::ConfigLoader config;
 
     //Window stuff
     Window & windowRef;

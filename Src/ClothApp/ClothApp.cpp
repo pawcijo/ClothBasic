@@ -51,12 +51,11 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
     posy = ypos;
 }
 
-ClothApp::ClothApp(Window &window) : windowRef(window),
-                                     camera(Camera()),
-                                     cloth1(ConfigUtils::GetValueFromMap<float>("ClothWidth", ConfigUtils::GlobalConfigMap),
-                                            ConfigUtils::GetValueFromMap<float>("ClothHeight", ConfigUtils::GlobalConfigMap),
-                                            ConfigUtils::GetValueFromMap<unsigned>("ParticleWidthNumber", ConfigUtils::GlobalConfigMap),
-                                            ConfigUtils::GetValueFromMap<unsigned>("ParticleHeightNumber", ConfigUtils::GlobalConfigMap)),
+ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::ConfigLoader()),
+                                     cloth1(config.GetValueFromMap<float>("ClothWidth"),
+                                            config.GetValueFromMap<float>("ClothHeight"),
+                                            config.GetValueFromMap<unsigned>("ParticleWidthNumber"),
+                                            config.GetValueFromMap<unsigned>("ParticleHeightNumber")),
                                      clothController(cloth1),
                                      clothDebugInfo(cloth1, clothController)
 {
@@ -65,7 +64,7 @@ ClothApp::ClothApp(Window &window) : windowRef(window),
     glfwSetKeyCallback(window.window, key_callback);
     glfwSetCursorPosCallback(window.window, cursor_position_callback);
 
-    pushingForce = ConfigUtils::GetValueFromMap<float>("ForceForPushingCloth", ConfigUtils::GlobalConfigMap);
+    pushingForce = config.GetValueFromMap<float>("ForceForPushingCloth");
     shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
     shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
     subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
@@ -74,10 +73,10 @@ ClothApp::ClothApp(Window &window) : windowRef(window),
     clothUpdateShader = new Shader("", "", "Shaders/ClothUpdate.comp");
     lastX = windowRef.iHeight / 2;
     lastY = windowRef.iWidth / 2;
-    clothParticleWidth = ConfigUtils::GetValueFromMap<unsigned>("ParticleWidthNumber", ConfigUtils::GlobalConfigMap);
-    clothParticleHight = ConfigUtils::GetValueFromMap<unsigned>("ParticleHeightNumber", ConfigUtils::GlobalConfigMap);
+    clothParticleWidth = config.GetValueFromMap<unsigned>("ParticleWidthNumber");
+    clothParticleHight = config.GetValueFromMap<unsigned>("ParticleHeightNumber");
 
-    // Setup delta time  
+    // Setup delta time
     // TODO change to elapsed time
     clothResolveShader->use();
     glUniform1f(0, dt);
@@ -136,12 +135,10 @@ void ClothApp::processKeys()
         }
     }
 
-        if (glfwGetKey(windowRef.window, GLFW_KEY_Y) == GLFW_PRESS)
+    if (glfwGetKey(windowRef.window, GLFW_KEY_Y) == GLFW_PRESS)
     {
         clothDebugInfo.ShowMatrixY();
     }
-
-    
 
     if (glfwGetKey(windowRef.window, GLFW_KEY_E) == GLFW_PRESS)
     {
@@ -200,7 +197,6 @@ void ClothApp::setViewPerspective(Camera &aCamera)
 
 void ClothApp::Update()
 {
-
 }
 
 void ClothApp::PhysixUpdate()
@@ -213,7 +209,7 @@ void ClothApp::PhysixUpdate()
 
     clothUpdateShader->use();
     glDispatchCompute(cloth1.getParticlesNumber() / 128, 1, 1);
- 
+
     clothResolveShader->use();
     glDispatchCompute(cloth1.getContraintSize() / 128, 1, 1);
 }
@@ -237,7 +233,7 @@ void ClothApp::run()
     Transform circleTransform = Transform::origin();
     Transform clothTransform = Transform::origin();
 
-    DrawMode configDrawMode = DrawMode(ConfigUtils::GetValueFromMap<unsigned>("Drawmode", ConfigUtils::GlobalConfigMap));
+    DrawMode configDrawMode = DrawMode(config.GetValueFromMap<unsigned>("Drawmode"));
 
     if (configDrawMode == DrawMode::EWireFrame)
     {

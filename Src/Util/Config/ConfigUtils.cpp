@@ -2,9 +2,7 @@
 
 namespace ConfigUtils
 {
-
-std::unordered_map<std::string, VariantType> GlobalConfigMap;
-void LoadConfig()
+void ConfigLoader::LoadConfig()
 {
   tinyxml2::XMLDocument doc;
   doc.LoadFile("Config.xml");
@@ -15,12 +13,12 @@ void LoadConfig()
   {
     for (tinyxml2::XMLElement *e = pRoot->FirstChildElement(); e != nullptr; e = e->NextSiblingElement())
     {
-      GetVariantValueAndInsertToMap(e, GlobalConfigMap);
+      GetVariantValueAndInsertToMap(e, aConfigMap);
     }
   }
 }
 
-void GetVariantValueAndInsertToMap(tinyxml2::XMLElement *xmlelemnt, std::unordered_map<std::string, VariantType> &aConfigMap)
+void ConfigLoader::GetVariantValueAndInsertToMap(tinyxml2::XMLElement *xmlelemnt, std::unordered_map<std::string, VariantType> &aConfigMap)
 {
   VariantType value;
   std::string elementType = xmlelemnt->FirstChildElement("Type")->GetText();

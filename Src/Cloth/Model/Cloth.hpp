@@ -95,6 +95,8 @@ public:
 
   ~Cloth();
 
+  Cloth() = default;
+
   std::vector<Particle>& GetParticles();
   Particle *GetParticle(int x, int y);
 
