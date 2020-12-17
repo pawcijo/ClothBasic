@@ -62,6 +62,10 @@ class ClothApp
     double lastX;
 
 
+   unsigned query;
+   unsigned query2;
+
+
     //example vertices
     std::vector<float> exampleToUpdate;
     //
@@ -71,12 +75,13 @@ class ClothApp
     Cloth cloth1;
     ClothController clothController;
     ClothDebugInfo clothDebugInfo;
+
     float pushingForce;
     unsigned clothParticleWidth;
     unsigned clothParticleHight;
     
     public:
-
+    
     void run();
     void Update();
     void PhysixUpdate();

@@ -76,6 +76,9 @@ ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::Conf
     clothParticleWidth = std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber"));
     clothParticleHight = std::get<unsigned>(config.GetValueFromMap("ParticleHeightNumber"));
 
+    glGenQueries(1, &query);
+    glGenQueries(1, &query2);
+
     // Setup delta time
     // TODO change to elapsed time
     clothResolveShader->use();
@@ -202,16 +205,22 @@ void ClothApp::Update()
 void ClothApp::PhysixUpdate()
 {
 
+	for (int i = 0; i < cloth1.GetClothSize().first; i++)
+	{
+		std::cout<<"y : "<<cloth1.getPositionData()[cloth1.GetClothSize().second + i].y;
+		
+	}
+	std::cout << "\n";
+	
+
     cloth1.AddForce(glm::vec3(0, -0.2, 0) *
                     TIME_STEPSIZE2); // TODO change  time_step to reliable time
 
     cloth1.Update(TIME_STEPSIZE2, 5);
 
-    clothUpdateShader->use();
-    glDispatchCompute(cloth1.getParticlesNumber() / 128, 1, 1);
-
+    
     clothResolveShader->use();
-    glDispatchCompute(cloth1.getContraintSize() / 128, 1, 1);
+    glDispatchCompute(cloth1.getConstraintsData().size()/256, 1, 1);
 }
 
 void ClothApp::run()

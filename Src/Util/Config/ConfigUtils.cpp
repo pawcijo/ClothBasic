@@ -5,7 +5,7 @@ namespace ConfigUtils
 void ConfigLoader::LoadConfig()
 {
   tinyxml2::XMLDocument doc;
-  doc.LoadFile("C:/Users/apana/Documents/GitRepos/ClothBasic/Build/Config.xml");
+  doc.LoadFile("C:/Users/apana/Documents/GitRepos/ClothBasic/BuildMinGw/Config.xml");
 
   tinyxml2::XMLElement *pRoot = doc.FirstChildElement();
 

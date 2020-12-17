@@ -4,13 +4,14 @@
 
 //change to vec4 data alligemnt !!
 layout(location=0)uniform float dt;
-layout(local_size_x=128,local_size_y=1,local_size_z=1)in;
+layout(local_size_x=1024)in;
 
 layout(std430,binding=0)buffer Pos
 {
     vec4 positions[];// array of positions + isMoveable
 };
 
+/*
 layout(std430,binding=1)buffer oldPos
 {
     vec4 oldPositions[];// array of positions
@@ -31,21 +32,23 @@ layout(std430,binding=3)buffer con
 
 layout(std430,binding=4)buffer mov
 {
-    vec2 constraintPart2[];// array of contrains part 2
+    vec4 constraintPart2[];// array of contrains part 2
     //p1 moveable
     //p2 moveable
 };
 
+*/
+
 void main()
 {
     int N = int(gl_GlobalInvocationID);
-    
+   /* 
     int p1Index = int(constraint[N].x);
     int p2Index = int(constraint[N].y);
     float restDistance = constraint[N].z;
     
-    bool p1Moveable = bool(constraintPart2[p1Index]);
-    bool p2Moveable = bool(constraintPart2[p2Index]);
+    bool p1Moveable = bool(constraintPart2[p1Index].x);
+    bool p2Moveable = bool(constraintPart2[p2Index].y);
     
     vec3 p1_position = positions[p1Index].xyz;
     vec3 p1_acceleration = accelerations[p1Index].xyz;
@@ -59,16 +62,17 @@ void main()
         p1_to_p2.y*p1_to_p2.y+
     p1_to_p2.z*p1_to_p2.z);
     
-    vec3 correctionVector=p1_to_p2*(1-restDistance/current_distance);
-    vec3 correctionVectorHalf=correctionVector*.5f;
-    
-    if(p1Moveable)
-    {
-        positions[p1Index]+=vec4(correctionVectorHalf,p1Moveable);
-    }
-    if(p2Moveable)
-    {
-        positions[p2Index]-=vec4(correctionVectorHalf,p2Moveable);
-    }
+    vec3 correctionVector = p1_to_p2*(1-restDistance/current_distance);
+    vec3 correctionVectorHalf = correctionVector*.5f;
+    */
+   // if(p1Moveable)
+   // {
+   //     positions[p1Index] = vec4(0);// += vec4(correctionVectorHalf,p1Moveable);
+  //  }
+   // if(p2Moveable)
+   // {
+       
+        positions[N] += vec4(0,-0.01,0,0); //-= vec4(correctionVectorHalf,p2Moveable);
+  //  }
     
 }

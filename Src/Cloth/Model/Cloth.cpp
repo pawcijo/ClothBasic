@@ -20,43 +20,46 @@ void Cloth::MakeConstriant(Particle *p1, Particle *p2)
 void Cloth::generateBuffers(unsigned particleNumber, unsigned constraintNumber)
 {
 
-  glGenVertexArrays(1, &VAO);
-  glGenBuffers(1, &EBO);
-  glBindVertexArray(VAO);
+  //glGenVertexArrays(1, &VAO);
+  //glBindVertexArray(VAO);
 
   indicies = genereteIndicies(std::pair<unsigned, unsigned>(particlesWidthNumber, particlesHeightNumber));
   indiciesSize = indicies.size() * sizeof(unsigned);
 
-  glGenBuffers(1, &positionVbo);
-  glGenBuffers(1, &oldPositionSSbo);
-  glGenBuffers(1, &accelerationSSbo);
-  glGenBuffers(1, &constraintSSbo);
-  glGenBuffers(1, &constraintTwoSSbo);
+  //glGenBuffers(1, &positionVbo);
+ // glGenBuffers(1, &oldPositionSSbo);
+ // glGenBuffers(1, &accelerationSSbo);
+ // glGenBuffers(1, &constraintSSbo);
+ // glGenBuffers(1, &constraintTwoSSbo);
 
+  //GL_STREAM_READ_ARB, GL_STATIC_READ_ARB, or GL_DYNAMIC_READ_ARB
+  /*
   glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
-  glBufferData(GL_ARRAY_BUFFER, positionData.size() * sizeof(glm::vec4), &positionData, GL_DYNAMIC_DRAW);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBufferData(GL_ARRAY_BUFFER, positionData.size() * sizeof(glm::vec4), NULL, GL_DYNAMIC_DRAW);
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, oldPositionSSbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, oldPositionData.size() * sizeof(glm::vec4), &oldPositionData, GL_DYNAMIC_DRAW);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, oldPositionData.size() * sizeof(glm::vec4), NULL, GL_STREAM_COPY);
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, accelerationSSbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, accelerationsData.size() * sizeof(glm::vec4), &accelerationsData, GL_DYNAMIC_DRAW);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, accelerationsData.size() * sizeof(glm::vec4), NULL, GL_STREAM_COPY);
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, constraintSSbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintsData.size() * sizeof(glm::vec4), &constraintsData, GL_DYNAMIC_DRAW);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintsData.size() * sizeof(glm::vec4), NULL, GL_STREAM_COPY);
+  gglUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, constraintTwoSSbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintsTwoData.size() * sizeof(glm::vec2), &constraintsTwoData, GL_DYNAMIC_DRAW);
-  glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintsTwoData.size() * sizeof(glm::vec4), NULL, GL_STREAM_COPY);
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 
-  const GLuint ssbos[] = {positionVbo, oldPositionSSbo,
-                          accelerationSSbo, constraintSSbo, constraintTwoSSbo};
-  glBindBuffersBase(GL_SHADER_STORAGE_BUFFER, 0, 5, ssbos);
-
+  ssbos = new unsigned[5];
+  ssbos[0] = positionVbo;
+  ssbos[1] = oldPositionSSbo;
+  ssbos[2] = accelerationSSbo;
+  ssbos[3] = constraintSSbo;
+  ssbos[4] = constraintTwoSSbo;
 
   glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -64,9 +67,98 @@ void Cloth::generateBuffers(unsigned particleNumber, unsigned constraintNumber)
 
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+  */
 
-  std::cout << "XD"
-            << "\n";
+  glGenVertexArrays(1, &VAO);
+  glBindVertexArray(VAO);
+  glGenBuffers(1, &EBO);
+
+  glGenBuffers(1, &positionVbo);
+
+  glBindVertexArray(VAO); 
+  glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4)*positionData.size(), &positionData[0], GL_STATIC_DRAW);
+
+  glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicies.size() * sizeof(unsigned), &indicies[0], GL_STATIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4*sizeof(GLfloat), (char*)0 + 0*sizeof(GLfloat));
+  glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, positionVbo);
+
+}
+
+void Cloth::retriveData()
+{
+  int DataSize = positionData.size();
+
+  // ------------------------------------------- POSITION ---------------------------
+  glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
+
+  glm::vec4 *kekw = (glm::vec4 *)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+
+  for (int i = 0; i < DataSize; i++)
+  {
+    positionData[i] = glm::vec4(kekw[i]);
+  }
+
+  glUnmapBuffer(GL_ARRAY_BUFFER);
+  /*
+  // ------------------------------------------- OLD POSITION ---------------------------
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, oldPositionSSbo);
+
+  glm::vec4 *kekw1 = (glm::vec4 *)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+
+  for (int i = 0; i < DataSize; i++)
+  {
+    oldPositionData[i] = glm::vec4(kekw1[i]);
+  }
+
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+  // ------------------------------------------- ACCELERATION ---------------------------
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, accelerationSSbo);
+
+  glm::vec4 *kekw2 = (glm::vec4 *)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+
+  for (int i = 0; i < DataSize; i++)
+  {
+    accelerationsData[i] = glm::vec4(kekw2[i]);
+  }
+
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+  // ------------------------------------------- CONTRAINT ---------------------------
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, constraintSSbo);
+
+  glm::vec4 *kekw3 = (glm::vec4 *)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+
+  for (int i = 0; i < DataSize; i++)
+  {
+    constraintsData[i] = glm::vec4(kekw3[i]);
+  }
+
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+
+  // ------------------------------------------- CONTRAINT2 ---------------------------
+
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, constraintTwoSSbo);
+
+  glm::vec4 *kekw4 = (glm::vec4 *)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+
+  for (int i = 0; i < DataSize; i++)
+  {
+    constraintsTwoData[i] = glm::vec4(kekw4[i]);
+  }
+
+
+  
+  glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+  */
 }
 
 Cloth::Cloth(float width, float height, unsigned particleWidth,
@@ -144,10 +236,10 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
 
   //fill data
 
-  for (auto particle : particles)
+  for (int i = 0; i < particles.size(); i++)
   {
-    positionData.push_back(glm::vec4(particle.GetPositionCopy(),
-                                     particle.isMoveable()));
+    positionData.push_back(glm::vec4(particles[i].GetPositionCopy(),
+                                     particles[i].isMoveable()));
   }
 
   for (auto particle : particles)
@@ -171,7 +263,7 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
 
   for (auto constraint : constraints)
   {
-    constraintsTwoData.push_back(glm::vec2(constraint.p1->isMoveable(), constraint.p2->isMoveable()));
+    constraintsTwoData.push_back(glm::vec4(constraint.p1->isMoveable(), constraint.p2->isMoveable(), 0, 0));
   }
 
   std::cout << "\n";
@@ -252,7 +344,7 @@ std::vector<glm::vec4> &Cloth::getConstraintsData()
 {
   return constraintsData;
 }
-std::vector<glm::vec2> &Cloth::getConstraintsTwoData()
+std::vector<glm::vec4> &Cloth::getConstraintsTwoData()
 {
   return constraintsTwoData;
 }
@@ -296,10 +388,14 @@ void Cloth::Draw(Shader *shader, Transform &transform)
 
   unsigned int transformLoc = glGetUniformLocation(shader->shaderProgramID, "transform");
   glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform.getTransform()));
-
+/*
   glBindVertexArray(VAO);
   glDrawElements(GL_TRIANGLES, indiciesSize, GL_UNSIGNED_INT, 0);
+*/
 
+  //glPointSize(10);
+  glBindVertexArray(VAO);
+  glDrawElements(GL_TRIANGLES, indiciesSize, GL_UNSIGNED_INT, 0);
   glBindVertexArray(0);
 }
 

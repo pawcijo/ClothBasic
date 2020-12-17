@@ -17,7 +17,7 @@ add_subdirectory (external)
 
 include_directories(
 	Src/
-	external/glfw-3.2.1/include/
+	external/glfw-3.3.2/include/
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
 	external/tinyxml2/
