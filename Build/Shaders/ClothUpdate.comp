@@ -3,7 +3,9 @@
 #extension GL_ARB_shader_storage_buffer_object:enable
 
 layout(location=0)uniform float dt;
-layout(local_size_x=512,local_size_y=1,local_size_z=1)in;
+layout(local_size_x=512)in;
+
+uniform float time;
 
 layout(std430,binding=0)buffer Pos
 {
@@ -28,34 +30,31 @@ layout(std430,binding=3)buffer con
     //rest distance
 };
 
-layout(std430,binding=4)buffer mov
-{
-    vec4 constraintPart2[];// array of contrains part 2
-    //p1 moveable
-    //p2 moveable
-};
-
 void main()
 {
-    int N=int(gl_GlobalInvocationID);
-    
+    int N=int(gl_GlobalInvocationID.x);
+     if(N > positions.length()) return;
+
     vec3 particle_position = positions[N].xyz;
     vec3 particle_acceleration = accelerations[N].xyz;
     bool moveable = bool(positions[N].w);
     float DampingLenght=.01f;
     
-    //Update
+    
     if(moveable)
     {
     vec3 temporary = particle_position;
     vec3 position = positions[N].xyz;
     vec3 oldPosition = oldPositions[N].xyz;
     vec3 acceleration = accelerations[N].xyz;
+
     positions[N] = vec4(position+(position-oldPosition)*(1.f-DampingLenght)+
     acceleration*dt,positions[N].w);
 
     oldPositions[N]=vec4(temporary,0);
-    accelerations[N]=vec4(0,0,0,0);
-}
+   
+    }
+	 accelerations[N]=vec4(0,0,0,0);
+
 
 }

@@ -23,14 +23,7 @@ static float globalCameraPitch;
 
 const float TIME_STEPSIZE2 = 0.5*0.5;
 
-
-#define NUM_PARTICLES 1024*1024 // total number of particles to move
-#define WORK_GROUP_SIZE 128 // # work-items per work-group
-
-
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
-
 
 class ClothApp
 {
@@ -38,8 +31,6 @@ class ClothApp
     //Config 
     ConfigUtils::ConfigLoader config;
 
-    //Window stuff
-    Window & windowRef;
     bool cursorEnabled = false;
 
     // Camera camera;
@@ -61,10 +52,11 @@ class ClothApp
     double lastY;
     double lastX;
 
-
-   unsigned query;
-   unsigned query2;
-
+    //Window stuff
+    Window & windowRef;
+  
+    unsigned query;
+    unsigned query2;
 
     //example vertices
     std::vector<float> exampleToUpdate;
@@ -72,16 +64,17 @@ class ClothApp
     std::vector<float> plane;
 
     //Cloth
-    Cloth cloth1;
     ClothController clothController;
-    ClothDebugInfo clothDebugInfo;
-
-    float pushingForce;
+    
     unsigned clothParticleWidth;
     unsigned clothParticleHight;
     
     public:
-    
+    //Cloth
+    ClothDebugInfo clothDebugInfo;
+    Cloth cloth1;
+    float pushingForce;
+
     void run();
     void Update();
     void PhysixUpdate();

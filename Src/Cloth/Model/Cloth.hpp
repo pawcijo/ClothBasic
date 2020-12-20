@@ -44,10 +44,6 @@ struct constraint{
 
 class Cloth
 {
-
-  //CPU Data
-  std::vector<Particle> particles;
-  std::vector<Constraint> constraints;
   unsigned particlesWidthNumber;
   unsigned particlesHeightNumber;
 
@@ -56,7 +52,6 @@ class Cloth
   std::vector<glm::vec4> oldPositionData;
   std::vector<glm::vec4> accelerationsData;
   std::vector<glm::vec4> constraintsData;
-  std::vector<glm::vec4> constraintsTwoData;
 
   //GPU DRAW STUFF
   //Vertex Array buffer
@@ -105,17 +100,21 @@ public:
 
   void SetForceToParticle_2(glm::vec3 force, unsigned width, unsigned height);
 
+    //CPU Data
+  std::vector<Particle> CPUparticles;
+  std::vector<Constraint> CPUconstraints;
+
+  //GPU
   std::vector<glm::vec4> &getPositionData();
   std::vector<glm::vec4> &getOldPositionData();
   std::vector<glm::vec4> &getAcelerationsData();
   std::vector<glm::vec4> &getConstraintsData();
-  std::vector<glm::vec4> &getConstraintsTwoData();
 
   unsigned positionVbo;
   unsigned oldPositionSSbo;
   unsigned accelerationSSbo;
   unsigned constraintSSbo;
-  unsigned constraintTwoSSbo;
+
 
   void retriveData();
 
@@ -127,4 +126,6 @@ public:
 
   void Update(float elapsedTime, int CONSTRAINT_ITERATIONS);
   void AddForce(glm::vec3 force); // add gravity or any other force to all particles
+  void AddForceGPU(glm::vec3 force,std::vector<int> indicies); 
+  void AddForceGPU(glm::vec3 force); 
 };

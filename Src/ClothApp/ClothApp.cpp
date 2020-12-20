@@ -16,186 +16,89 @@ float dt = 1.0f / 60.0f;
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
-void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
-{
-    if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
-    {
-        keyPressedStatus[key] = keyPressedStatus[key] ? false : true;
-        if (keyPressedStatus[key])
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        }
-        else
-        {
-            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        }
-
-        printf("keyPressedStatus :  %s \n", keyPressedStatus[key] ? "true" : "false");
-    }
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-    {
-        glfwSetWindowShouldClose(window, true);
-    }
-
-    if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
-    {
-        printf("Camera Position:  x:%f y:%f z:%f \n", globalCameraPosition.x, globalCameraPosition.y, globalCameraPosition.z);
-        printf("Camera yaw:%f pitch:%f \n", globalCameraYaw, globalCameraPitch);
-    }
-}
-
-void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
-{
-    mouseToUpdate = true;
-    posx = xpos;
-    posy = ypos;
-}
-
+static ClothApp *ptr;
 ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::ConfigLoader()),
-                                     cloth1(std::get<float>(config.GetValueFromMap("ClothWidth")),
-                                            std::get<float>(config.GetValueFromMap("ClothHeight")),
-                                            std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber")),
-                                            std::get<unsigned>(config.GetValueFromMap("ParticleHeightNumber"))),
-                                     clothController(cloth1),
-                                     clothDebugInfo(cloth1, clothController)
+cloth1(std::get<float>(config.GetValueFromMap("ClothWidth")),
+	std::get<float>(config.GetValueFromMap("ClothHeight")),
+	std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber")),
+	std::get<unsigned>(config.GetValueFromMap("ParticleHeightNumber"))),
+	clothController(cloth1),
+	clothDebugInfo(cloth1, clothController)
 {
 
-    printf("ClothApp created .\n");
-    glfwSetKeyCallback(window.window, key_callback);
-    glfwSetCursorPosCallback(window.window, cursor_position_callback);
+	ptr = this;
+	printf("ClothApp created .\n");
+	glfwSetKeyCallback(window.window, key_callback);
+	glfwSetCursorPosCallback(window.window, cursor_position_callback);
 
-    pushingForce = std::get<float>(config.GetValueFromMap("ForceForPushingCloth"));
-    shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
-    shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
-    subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
-    subDataShader3D_2 = new Shader("Shaders/SubDataCloth3D_2.vs", "Shaders/SubDataCloth3D_2.fs");
-    clothResolveShader = new Shader("", "", "Shaders/ClothResolve.comp");
-    clothUpdateShader = new Shader("", "", "Shaders/ClothUpdate.comp");
-    lastX = windowRef.iHeight / 2;
-    lastY = windowRef.iWidth / 2;
-    clothParticleWidth = std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber"));
-    clothParticleHight = std::get<unsigned>(config.GetValueFromMap("ParticleHeightNumber"));
+	pushingForce = std::get<float>(config.GetValueFromMap("ForceForPushingCloth"));
+	shader2D = new Shader("Shaders/Cloth.vs", "Shaders/Cloth.fs");
+	shader3D = new Shader("Shaders/Cloth3D.vs", "Shaders/Cloth3D.fs");
+	subDataShader3D = new Shader("Shaders/SubDataCloth3D.vs", "Shaders/SubDataCloth3D.fs");
+	subDataShader3D_2 = new Shader("Shaders/SubDataCloth3D_2.vs", "Shaders/SubDataCloth3D_2.fs");
+	clothResolveShader = new Shader("", "", "Shaders/ClothResolve.comp");
+	clothUpdateShader = new Shader("", "", "Shaders/ClothUpdate.comp");
+	lastX = windowRef.iHeight / 2;
+	lastY = windowRef.iWidth / 2;
+	clothParticleWidth = std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber"));
+	clothParticleHight = std::get<unsigned>(config.GetValueFromMap("ParticleHeightNumber"));
 
-    glGenQueries(1, &query);
-    glGenQueries(1, &query2);
+	glGenQueries(1, &query);
+	glGenQueries(1, &query2);
 
-    // Setup delta time
-    // TODO change to elapsed time
-    clothResolveShader->use();
-    glUniform1f(0, dt);
-    clothUpdateShader->use();
-    glUniform1f(0, dt);
+	// Setup delta time
+	// TODO change to elapsed time
+	clothResolveShader->use();
+	glUniform1f(0, dt);
+	clothUpdateShader->use();
+	glUniform1f(0, dt);
 }
 
 void ClothApp::processMouse()
 {
-    if (mouseCallBack)
-    {
-        if (mouseToUpdate)
-        {
-            mouseToUpdate = false;
-            if (firstMouse)
-            {
-                lastX = posx;
-                lastY = posy;
-                firstMouse = false;
-            }
+	if (mouseCallBack)
+	{
+		if (mouseToUpdate)
+		{
+			mouseToUpdate = false;
+			if (firstMouse)
+			{
+				lastX = posx;
+				lastY = posy;
+				firstMouse = false;
+			}
 
-            float xoffset = posx - lastX;
-            float yoffset =
-                lastY - posy; // reversed since y-coordinates go from bottom to top
+			float xoffset = posx - lastX;
+			float yoffset =
+				lastY - posy; // reversed since y-coordinates go from bottom to top
 
-            lastX = posx;
-            lastY = posy;
+			lastX = posx;
+			lastY = posy;
 
-            camera.ProcessMouseMovement(xoffset, yoffset);
-        }
-    }
-}
-
-void ClothApp::processKeys()
-{
-    if (glfwGetKey(windowRef.window, GLFW_KEY_P) == GLFW_PRESS)
-    {
-        clothDebugInfo.ShowLastRowInfo_2();
-    }
-
-    if (glfwGetKey(windowRef.window, GLFW_KEY_M) == GLFW_PRESS)
-    {
-        clothDebugInfo.MoveLastRow_2(pushingForce);
-    }
-
-    if (glfwGetKey(windowRef.window, GLFW_KEY_W) == GLFW_PRESS)
-    {
-        camera.Position += cameraSpeed * camera.Front;
-    }
-
-    if (glfwGetKey(windowRef.window, GLFW_KEY_Q) == GLFW_PRESS)
-    {
-        for (int i = 0; i < exampleToUpdate.size(); i++)
-        {
-            exampleToUpdate[i] = exampleToUpdate[i] + 1;
-        }
-    }
-
-    if (glfwGetKey(windowRef.window, GLFW_KEY_Y) == GLFW_PRESS)
-    {
-        clothDebugInfo.ShowMatrixY();
-    }
-
-    if (glfwGetKey(windowRef.window, GLFW_KEY_E) == GLFW_PRESS)
-    {
-
-        for (int i = 0; i < exampleToUpdate.size(); i++)
-        {
-            exampleToUpdate[i] = exampleToUpdate[i] - 1;
-        }
-    }
-
-    if (glfwGetKey(windowRef.window, GLFW_KEY_S) == GLFW_PRESS)
-    {
-        camera.Position -= cameraSpeed * camera.Front;
-    }
-    if (glfwGetKey(windowRef.window, GLFW_KEY_A) == GLFW_PRESS)
-    {
-        camera.Position -=
-            glm::normalize(glm::cross(camera.Front, camera.Up)) * cameraSpeed;
-    }
-    if (glfwGetKey(windowRef.window, GLFW_KEY_D) == GLFW_PRESS)
-    {
-        camera.Position +=
-            glm::normalize(glm::cross(camera.Front, camera.Up)) * cameraSpeed;
-    }
-    if (glfwGetKey(windowRef.window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    {
-        camera.Position += cameraSpeed * camera.Up;
-    }
-
-    if (glfwGetKey(windowRef.window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-    {
-        camera.Position -= cameraSpeed * camera.Up;
-    }
+			camera.ProcessMouseMovement(xoffset, yoffset);
+		}
+	}
 }
 
 void ClothApp::setViewPerspective(Camera &aCamera)
 {
 
-    projection = glm::perspective(
-        aCamera.Zoom, (float)windowRef.iWidth / (float)windowRef.iHeight,
-        0.1f, 10000.0f);
-    view = aCamera.GetViewMatrix();
+	projection = glm::perspective(
+		aCamera.Zoom, (float)windowRef.iWidth / (float)windowRef.iHeight,
+		0.1f, 10000.0f);
+	view = aCamera.GetViewMatrix();
 
-    shader3D->use();
-    shader3D->setMat4("projection", projection);
-    shader3D->setMat4("view", view);
+	shader3D->use();
+	shader3D->setMat4("projection", projection);
+	shader3D->setMat4("view", view);
 
-    subDataShader3D->use();
-    subDataShader3D->setMat4("projection", projection);
-    subDataShader3D->setMat4("view", view);
+	subDataShader3D->use();
+	subDataShader3D->setMat4("projection", projection);
+	subDataShader3D->setMat4("view", view);
 
-    subDataShader3D_2->use();
-    subDataShader3D_2->setMat4("projection", projection);
-    subDataShader3D_2->setMat4("view", view);
+	subDataShader3D_2->use();
+	subDataShader3D_2->setMat4("projection", projection);
+	subDataShader3D_2->setMat4("view", view);
 }
 
 void ClothApp::Update()
@@ -205,130 +108,314 @@ void ClothApp::Update()
 void ClothApp::PhysixUpdate()
 {
 
-	for (int i = 0; i < cloth1.GetClothSize().first; i++)
+	cloth1.AddForce(glm::vec3(0, -0.2, 0) *
+		TIME_STEPSIZE2); // TODO change  time_step to reliable time
+
+	cloth1.Update(TIME_STEPSIZE2, 5);
+
+	/*
+		std::cout<<"\n";
+		std::cout << "\n" << "GPU :" << "\n";
+		for(int i = 0;i<10;i++)
 	{
-		std::cout<<"y : "<<cloth1.getPositionData()[cloth1.GetClothSize().second + i].y;
-		
+			int firstVerticleId = cloth1.getConstraintsData()[i].x;
+			int secondParticleId = cloth1.getConstraintsData()[i].y;
+
+			float P1_x = cloth1.getPositionData()[firstVerticleId].x;
+			float P2_x = cloth1.getPositionData()[secondParticleId].x;
+
+			float P1_y = cloth1.getPositionData()[firstVerticleId].y;
+			float P2_y = cloth1.getPositionData()[secondParticleId].y;
+
+			float P1_z = cloth1.getPositionData()[firstVerticleId].z;
+			float P2_z = cloth1.getPositionData()[secondParticleId].z;
+			
+			bool P1_moveable = cloth1.getPositionData()[firstVerticleId].w;
+			bool P2_moveable = cloth1.getPositionData()[secondParticleId].w;
+
+			glm::vec4 P1_Acceler = cloth1.getAcelerationsData()[firstVerticleId];
+			glm::vec4 P2_Acceler = cloth1.getAcelerationsData()[secondParticleId];
+
+
+			std::cout << "Contraint [" << i << "]: \n"
+				<< "Indexes : " << firstVerticleId << " | " << secondParticleId << "\n"
+				<< "Cords :" << P1_x << " " << P1_y << " " << P1_z << " | " << P2_x << " " << P2_y << " " << P2_z << "\n"
+				<< "Acceleration: " << P1_Acceler.x << " " << P1_Acceler.y << " " << P1_Acceler.z << " | "
+				<< P2_Acceler.x << " " << P2_Acceler.y << " " << P2_Acceler.z << "\n"
+				<< "P1 moveable : " << P1_moveable << " P2 moveable : " << P2_moveable << "\n";
+
 	}
-	std::cout << "\n";
 	
 
-    cloth1.AddForce(glm::vec3(0, -0.2, 0) *
-                    TIME_STEPSIZE2); // TODO change  time_step to reliable time
+		std::cout << "\n" << "CPU :" << "\n";
+		for (int i = 0; i < 10; i++)
+		{
+			int firstVerticleId = cloth1.CPUconstraints[i].p1->getIndex();
+			int secondParticleId = cloth1.CPUconstraints[i].p2->getIndex();
 
-    cloth1.Update(TIME_STEPSIZE2, 5);
+			float P1_x = cloth1.CPUparticles[firstVerticleId].GetPosition().x;
+			float P2_x = cloth1.CPUparticles[secondParticleId].GetPosition().x;
 
-    
-    clothResolveShader->use();
-    glDispatchCompute(cloth1.getConstraintsData().size()/256, 1, 1);
+			float P1_y = cloth1.CPUparticles[firstVerticleId].GetPosition().y;
+			float P2_y = cloth1.CPUparticles[secondParticleId].GetPosition().y;
+
+			float P1_z = cloth1.CPUparticles[firstVerticleId].GetPosition().z;
+			float P2_z = cloth1.CPUparticles[secondParticleId].GetPosition().z;
+
+			glm::vec3 P1_Acceler = cloth1.CPUparticles[firstVerticleId].GetAcceleration();
+			glm::vec3 P2_Acceler = cloth1.CPUparticles[secondParticleId].GetAcceleration();
+
+
+			std::cout << "Contraint [" << i << "]: \n"
+				<< "Indexes : " << firstVerticleId << " | " << secondParticleId << "\n"
+				<< "Cords : " << P1_x << " " << P1_y << " " << P1_z << " | " << P2_x << " " << P2_y << " " << P2_z << "\n"
+				<< "Acceleration: " << P1_Acceler.x <<" "<<P1_Acceler.y <<" " << P1_Acceler.z <<" | "  
+				<< P2_Acceler.x<< " "<<P2_Acceler.y <<" " << P2_Acceler.z << "\n"; 
+
+		}
+		*/
+
+
+	clothResolveShader->use();
+	clothResolveShader->setFloat("time", glfwGetTime());
+	//for (int i = 0; i < 5; i++)
+	glDispatchCompute(std::ceil(cloth1.getConstraintsData().size() / 1024.0), 1, 1);
+	cloth1.retriveData();
+
+
+	
+	clothUpdateShader->use();
+	clothUpdateShader->setFloat("time", glfwGetTime());
+	cloth1.AddForceGPU(glm::vec3(0, -0.2, 0));
+	glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
+	cloth1.retriveData();
+	
+
+
 }
 
 void ClothApp::run()
 {
 
-    camera.Position = glm::vec3(-100, 10, -5);
-    exampleToUpdate = Shapes::BatchedCube::vertices;
-    plane = Shapes::Rectangle::vertices;
+	camera.Position = glm::vec3(-100, 10, -5);
+	exampleToUpdate = Shapes::BatchedCube::vertices;
+	plane = Shapes::Rectangle::vertices;
 
-    std::vector<unsigned> clothIndicies;
-    std::vector<float> clothColorBuffer;
+	std::vector<unsigned> clothIndicies;
+	std::vector<float> clothColorBuffer;
 
-    clothColorBuffer = generateClothColor(cloth1.GetParticles().size());
-    clothIndicies = genereteIndicies(cloth1.GetClothSize());
+	clothColorBuffer = generateClothColor(cloth1.GetParticles().size());
+	clothIndicies = genereteIndicies(cloth1.GetClothSize());
 
-    Transform cubeTransform = Transform::origin();
-    Transform subDataCubeTransform = Transform::origin();
-    Transform subDataPlaneTransform = Transform::origin();
-    Transform circleTransform = Transform::origin();
-    Transform clothTransform = Transform::origin();
+	Transform cubeTransform = Transform::origin();
+	Transform subDataCubeTransform = Transform::origin();
+	Transform subDataPlaneTransform = Transform::origin();
+	Transform circleTransform = Transform::origin();
+	Transform clothTransform = Transform::origin();
+	Transform gpuCloth = Transform::origin();
 
-    DrawMode configDrawMode = DrawMode(std::get<unsigned>(config.GetValueFromMap("Drawmode")));
+	gpuCloth.translate(glm::vec3(-100, 0, 0));
 
-    if (configDrawMode == DrawMode::EWireFrame)
-    {
-        printf("Config draw mode : WireFrame \n");
-    }
-    else
-    {
-        printf("Config draw mode : Default \n");
-    }
+	DrawMode configDrawMode = DrawMode(std::get<unsigned>(config.GetValueFromMap("Drawmode")));
 
-    Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
-    cube.transform.scaleTransform(10, 10, 10);
-    cube.transform.translate(glm::vec3(-15.0f, 0.0f, 0.0f));
+	if (configDrawMode == DrawMode::EWireFrame)
+	{
+		printf("Config draw mode : WireFrame \n");
+	}
+	else
+	{
+		printf("Config draw mode : Default \n");
+	}
 
-    SubDataObject subDataCube(exampleToUpdate, Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
-    subDataCube.transform.scaleTransform(10, 10, 10);
-    subDataCube.transform.translate(glm::vec3(10, 10, 10));
+	Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
+	cube.transform.scaleTransform(10, 10, 10);
+	cube.transform.translate(glm::vec3(-15.0f, 0.0f, 0.0f));
 
-    SubDataObject subDataPlace(plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices, subDataPlaneTransform);
-    subDataPlace.transform.scaleTransform(10, 10, 10);
-    subDataPlace.transform.translate(glm::vec3(10, 10, 10));
+	SubDataObject subDataCube(exampleToUpdate, Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
+	subDataCube.transform.scaleTransform(10, 10, 10);
+	subDataCube.transform.translate(glm::vec3(10, 10, 10));
 
-    SubDataObject subDataCloth(clothController.GetVertexInfo(), clothColorBuffer, clothIndicies, clothTransform, configDrawMode);
-    subDataCloth.transform.scaleTransform(1, 1, 1);
-    subDataCloth.transform.translate(glm::vec3(1, 1, 1));
+	SubDataObject subDataPlace(plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices, subDataPlaneTransform);
+	subDataPlace.transform.scaleTransform(10, 10, 10);
+	subDataPlace.transform.translate(glm::vec3(10, 10, 10));
 
-    Circle circle(170, 0.5, circleTransform);
-    circleTransform.translate(glm::vec3(-0.93, 0.89, 0));
-    circleTransform.scaleTransform(1, (float)windowRef.iWidth / (float)windowRef.iHeight, 1);
-    circleTransform.scaleTransform(0.1, 0.1, 0.1);
+	SubDataObject subDataCloth(clothController.GetVertexInfo(), clothColorBuffer, clothIndicies, clothTransform, configDrawMode);
+	subDataCloth.transform.scaleTransform(1, 1, 1);
+	subDataCloth.transform.translate(glm::vec3(1, 1, 1));
 
-    unsigned next_tick = (glfwGetTime() * 1000);
-    int loops;
-    float interpolation = 1.0;
-    const int TICKS_PER_SECOND = 64;
-    const int SKIP_TICKS = 1000 / TICKS_PER_SECOND;
-    const int MAX_FRAMESKIP = 5;
+	Circle circle(170, 0.5, circleTransform);
+	circleTransform.translate(glm::vec3(-0.93, 0.89, 0));
+	circleTransform.scaleTransform(1, (float)windowRef.iWidth / (float)windowRef.iHeight, 1);
+	circleTransform.scaleTransform(0.1, 0.1, 0.1);
 
-    while (!glfwWindowShouldClose(windowRef.window))
-    {
+	unsigned next_tick = (glfwGetTime() * 1000);
+	int loops;
+	float interpolation = 1.0;
+	const int TICKS_PER_SECOND = 64;
+	const int SKIP_TICKS = 1000 / TICKS_PER_SECOND;
+	const int MAX_FRAMESKIP = 5;
 
-        loops = 0;
+	while (!glfwWindowShouldClose(windowRef.window))
+	{
 
-        while ((glfwGetTime() * 1000) > next_tick && loops < MAX_FRAMESKIP)
-        {
-            processKeys();
-            processMouse();
+		loops = 0;
 
-            PhysixUpdate();
+		while ((glfwGetTime() * 1000) > next_tick && loops < MAX_FRAMESKIP)
+		{
+			processKeys();
+			processMouse();
 
-            globalCameraPosition = camera.Position;
-            globalCameraYaw = camera.Yaw;
-            globalCameraPitch = camera.Pitch;
+			PhysixUpdate();
 
-            next_tick += SKIP_TICKS;
-            loops++;
-        }
+			globalCameraPosition = camera.Position;
+			globalCameraYaw = camera.Yaw;
+			globalCameraPitch = camera.Pitch;
 
-        interpolation =
-            float((glfwGetTime() * 1000) + SKIP_TICKS - next_tick) /
-            float(SKIP_TICKS);
+			next_tick += SKIP_TICKS;
+			loops++;
+		}
 
-        // render
-        // ------
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		interpolation =
+			float((glfwGetTime() * 1000) + SKIP_TICKS - next_tick) /
+			float(SKIP_TICKS);
 
-        //draw 3D
-        glEnable(GL_DEPTH_TEST);
-        setViewPerspective(camera);
+		// render
+		// ------
+		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
-        subDataPlace.Draw(subDataShader3D, plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices);
-        subDataCloth.Draw(subDataShader3D, clothController.GetVertexInfo(), clothColorBuffer, clothIndicies);
-        //subDataCloth.Draw2(subDataShader3D_2, clothController.GetVertexInfo_2(), clothColorBuffer, clothIndicies);
-        clothController.Draw(subDataShader3D_2, subDataCloth.transform);
-        cube.Draw(shader3D);
+		//draw 3D
+		glEnable(GL_DEPTH_TEST);
+		setViewPerspective(camera);
 
-        glDisable(GL_DEPTH_TEST);
-        //draw 2D
-        circle.Draw(shader2D);
+		subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
+		subDataPlace.Draw(subDataShader3D, plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices);
+		subDataCloth.Draw(subDataShader3D, clothController.GetVertexInfo(), clothColorBuffer, clothIndicies);
+		//subDataCloth.Draw2(subDataShader3D_2, clothController.GetVertexInfo_2(), clothColorBuffer, clothIndicies);
 
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
-        glfwSwapBuffers(windowRef.window);
-        glfwPollEvents();
-    }
-    glfwTerminate();
+		clothController.Draw(subDataShader3D_2, gpuCloth);
+		cube.Draw(shader3D);
+
+		glDisable(GL_DEPTH_TEST);
+		//draw 2D
+		circle.Draw(shader2D);
+
+		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
+		// -------------------------------------------------------------------------------
+		glfwSwapBuffers(windowRef.window);
+		glfwPollEvents();
+	}
+	glfwTerminate();
+}
+
+void ClothApp::processKeys()
+{
+
+	if (glfwGetKey(windowRef.window, GLFW_KEY_W) == GLFW_PRESS)
+	{
+		camera.Position += cameraSpeed * camera.Front;
+	}
+
+	if (glfwGetKey(windowRef.window, GLFW_KEY_Q) == GLFW_PRESS)
+	{
+		for (int i = 0; i < exampleToUpdate.size(); i++)
+		{
+			exampleToUpdate[i] = exampleToUpdate[i] + 1;
+		}
+	}
+
+	if (glfwGetKey(windowRef.window, GLFW_KEY_E) == GLFW_PRESS)
+	{
+
+		for (int i = 0; i < exampleToUpdate.size(); i++)
+		{
+			exampleToUpdate[i] = exampleToUpdate[i] - 1;
+		}
+	}
+
+	if (glfwGetKey(windowRef.window, GLFW_KEY_S) == GLFW_PRESS)
+	{
+		camera.Position -= cameraSpeed * camera.Front;
+	}
+	if (glfwGetKey(windowRef.window, GLFW_KEY_A) == GLFW_PRESS)
+	{
+		camera.Position -=
+			glm::normalize(glm::cross(camera.Front, camera.Up)) * cameraSpeed;
+	}
+	if (glfwGetKey(windowRef.window, GLFW_KEY_D) == GLFW_PRESS)
+	{
+		camera.Position +=
+			glm::normalize(glm::cross(camera.Front, camera.Up)) * cameraSpeed;
+	}
+	if (glfwGetKey(windowRef.window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	{
+		camera.Position += cameraSpeed * camera.Up;
+	}
+
+	if (glfwGetKey(windowRef.window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+	{
+		camera.Position -= cameraSpeed * camera.Up;
+	}
+}
+
+void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+
+	if (key == GLFW_KEY_F1 && action == GLFW_PRESS)
+	{
+		keyPressedStatus[key] = keyPressedStatus[key] ? false : true;
+		if (keyPressedStatus[key])
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		}
+		else
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		}
+
+		printf("keyPressedStatus :  %s \n", keyPressedStatus[key] ? "true" : "false");
+	}
+
+	if (key == GLFW_KEY_P && action == GLFW_PRESS)
+	{
+		ptr->clothDebugInfo.ShowLastRowInfo();
+	}
+	if (key == GLFW_KEY_O && action == GLFW_PRESS)
+	{
+		ptr->clothDebugInfo.ShowLastRowInfo_2();
+	}
+
+	if (key == GLFW_KEY_Y && action == GLFW_PRESS)
+	{
+		ptr->clothDebugInfo.ShowMatrixY();
+	}
+
+	if (key == GLFW_KEY_M && action == GLFW_PRESS)
+	{
+		ptr->clothDebugInfo.MoveLastRow(ptr->pushingForce);
+		std::vector<int> whatToMove;
+		for (int i = 10; i > 0; i--)
+		{
+			whatToMove.push_back(ptr->cloth1.getPositionData().size() - i);
+		}
+		ptr->cloth1.AddForceGPU(glm::vec3(0, 0, 150), whatToMove);
+	}
+
+	if (key == GLFW_KEY_F3 && action == GLFW_PRESS)
+	{
+		printf("Camera Position:  x:%f y:%f z:%f \n", globalCameraPosition.x, globalCameraPosition.y, globalCameraPosition.z);
+		printf("Camera yaw:%f pitch:%f \n", globalCameraYaw, globalCameraPitch);
+	}
+
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+}
+
+void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
+{
+	mouseToUpdate = true;
+	posx = xpos;
+	posy = ypos;
 }

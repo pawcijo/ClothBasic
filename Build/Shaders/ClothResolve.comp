@@ -2,16 +2,16 @@
 #extension GL_ARB_compute_shader:enable
 #extension GL_ARB_shader_storage_buffer_object:enable
 
-//change to vec4 data alligemnt !!
 layout(location=0)uniform float dt;
 layout(local_size_x=1024)in;
+
+uniform float time;
 
 layout(std430,binding=0)buffer Pos
 {
     vec4 positions[];// array of positions + isMoveable
 };
 
-/*
 layout(std430,binding=1)buffer oldPos
 {
     vec4 oldPositions[];// array of positions
@@ -30,25 +30,18 @@ layout(std430,binding=3)buffer con
     //rest distance
 };
 
-layout(std430,binding=4)buffer mov
-{
-    vec4 constraintPart2[];// array of contrains part 2
-    //p1 moveable
-    //p2 moveable
-};
-
-*/
-
 void main()
 {
-    int N = int(gl_GlobalInvocationID);
-   /* 
+
+/*
+      int N = int(gl_GlobalInvocationID);
+   
     int p1Index = int(constraint[N].x);
     int p2Index = int(constraint[N].y);
     float restDistance = constraint[N].z;
     
-    bool p1Moveable = bool(constraintPart2[p1Index].x);
-    bool p2Moveable = bool(constraintPart2[p2Index].y);
+    bool p1Moveable = bool(constraint[p1Index].w);
+    bool p2Moveable = bool(constraint[p2Index].w);
     
     vec3 p1_position = positions[p1Index].xyz;
     vec3 p1_acceleration = accelerations[p1Index].xyz;
@@ -57,22 +50,57 @@ void main()
     
     //resolve contraints
     
-    vec3 p1_to_p2=p2_position-p1_position;
-    float current_distance=sqrt(p1_to_p2.x*p1_to_p2.x+
-        p1_to_p2.y*p1_to_p2.y+
-    p1_to_p2.z*p1_to_p2.z);
+    vec3 p1_to_p2=normalize(p2_position-p1_position);
+    float current_distance=length(p2_position-p1_position);
     
     vec3 correctionVector = p1_to_p2*(1-restDistance/current_distance);
     vec3 correctionVectorHalf = correctionVector*.5f;
-    */
-   // if(p1Moveable)
-   // {
-   //     positions[p1Index] = vec4(0);// += vec4(correctionVectorHalf,p1Moveable);
-  //  }
-   // if(p2Moveable)
-   // {
-       
-        positions[N] += vec4(0,-0.01,0,0); //-= vec4(correctionVectorHalf,p2Moveable);
-  //  }
     
+    if(p1Moveable)
+    {
+        positions[p1Index]+= vec4(correctionVectorHalf,p1Moveable);
+    }
+    if(p2Moveable)
+    {
+        positions[p2Index]-= vec4(correctionVectorHalf,p2Moveable);
+    }
+	*/
+
+
+	int N = int(gl_GlobalInvocationID);
+	int p1Index = int(constraint[N].x);
+    int p2Index = int(constraint[N].y);
+	float restDistance = constraint[N].z;
+
+		bool p1Moveable = bool(positions[p1Index].w);
+    bool p2Moveable = bool(positions[p2Index].w);
+
+	vec3 p1_position = positions[p1Index].xyz;
+    vec3 p2_position = positions[p2Index].xyz;
+
+	vec3 p1_to_p2 = normalize(p2_position - p1_position);
+    float current_distance = length(p2_position - p1_position);
+
+	vec3 correctionVector = p1_to_p2 * (1 -  restDistance/current_distance);
+    vec3 correctionVectorHalf = correctionVector * 0.5f;
+	correctionVectorHalf *=  1.11;
+
+	for(int i =0;i<20;i++)
+	{
+	if(current_distance > restDistance)
+	{
+		if(p1Moveable)
+		positions[p1Index]+=vec4(correctionVectorHalf,0);
+	}
+	if(current_distance > restDistance)
+	{
+		if(p2Moveable)
+		positions[p2Index]-=vec4(correctionVectorHalf,0);
+	}
+	}
+	 // int p1Index = int(constraint[N].x);
+	 
+    
+	// positions[p1Index]+=vec4(0,0,1,0);
+	 // positions[p2Index]+=vec4(0,0,-1,0);
 }

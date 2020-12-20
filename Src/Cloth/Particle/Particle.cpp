@@ -28,8 +28,9 @@ void Particle::Update(float elapsedTime)
     position = position + (position - oldPosition) * (1.0f - DampingLenght) +
                acceleration * elapsedTime;
     oldPosition = temporary;
-    acceleration = glm::vec3(0, 0, 0);
+    
   }
+  acceleration = glm::vec3(0, 0, 0);
 }
 
 glm::vec3 &Particle::GetAcceleration() { return acceleration; }
