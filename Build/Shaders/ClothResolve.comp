@@ -83,16 +83,15 @@ void main()
 
 	vec3 correctionVector = p1_to_p2 * (1 -  restDistance/current_distance);
     vec3 correctionVectorHalf = correctionVector * 0.5f;
-	correctionVectorHalf *=  1.11;
 
-	for(int i =0;i<20;i++)
+	for(int i =0;i<10;i++)
 	{
 	if(current_distance > restDistance)
 	{
 		if(p1Moveable)
 		positions[p1Index]+=vec4(correctionVectorHalf,0);
 	}
-	if(current_distance > restDistance)
+	if(current_distance >  restDistance)
 	{
 		if(p2Moveable)
 		positions[p2Index]-=vec4(correctionVectorHalf,0);

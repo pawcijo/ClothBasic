@@ -38,7 +38,7 @@ void main()
     vec3 particle_position = positions[N].xyz;
     vec3 particle_acceleration = accelerations[N].xyz;
     bool moveable = bool(positions[N].w);
-    float DampingLenght=.01f;
+    float DampingLenght=0.01f;
     
     
     if(moveable)

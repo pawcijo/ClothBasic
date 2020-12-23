@@ -108,7 +108,7 @@ void ClothApp::Update()
 void ClothApp::PhysixUpdate()
 {
 
-	cloth1.AddForce(glm::vec3(0, -0.2, 0) *
+	cloth1.AddForce(glm::vec3(0.5, -0.2, 0.2) *
 		TIME_STEPSIZE2); // TODO change  time_step to reliable time
 
 	cloth1.Update(TIME_STEPSIZE2, 5);
@@ -186,7 +186,7 @@ void ClothApp::PhysixUpdate()
 	
 	clothUpdateShader->use();
 	clothUpdateShader->setFloat("time", glfwGetTime());
-	cloth1.AddForceGPU(glm::vec3(0, -0.2, 0));
+	cloth1.AddForceGPU(glm::vec3(0.5, -0.2, 0.2));
 	glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
 	cloth1.retriveData();
 	
