@@ -14,6 +14,7 @@
 
 static std::map<int,bool> keyPressedStatus;
 static bool mouseToUpdate = false;
+static bool CPU_SIMULATION_ON = false;
 static double posx;
 static double posy;
 

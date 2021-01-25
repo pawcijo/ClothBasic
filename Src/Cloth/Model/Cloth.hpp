@@ -51,7 +51,18 @@ class Cloth
   std::vector<glm::vec4> positionData; //init with particle number
   std::vector<glm::vec4> oldPositionData;
   std::vector<glm::vec4> accelerationsData;
-  std::vector<glm::vec4> constraintsData;
+  std::vector<glm::vec4> constraintsData; //need to diviede to 8 groups
+  std::vector<glm::vec4> constraintsDataAlligned; //need to diviede to 8 groups
+
+
+  std::vector<glm::vec4> constraintsData_1;
+  std::vector<glm::vec4> constraintsData_2;
+  std::vector<glm::vec4> constraintsData_3;
+  std::vector<glm::vec4> constraintsData_4;
+  std::vector<glm::vec4> constraintsData_5;
+  std::vector<glm::vec4> constraintsData_6;
+  std::vector<glm::vec4> constraintsData_7;
+  std::vector<glm::vec4> constraintsData_8;
 
   //GPU DRAW STUFF
   //Vertex Array buffer
@@ -71,6 +82,8 @@ class Cloth
   unsigned int instancedArray;
   unsigned int ParticleVAO;
   std::vector<glm::mat4 *> modelMatrices;
+
+  void FillAllignedData();
 
 public:
   Cloth(float width, float height, unsigned partilceNumberWidth,
@@ -114,7 +127,6 @@ public:
   unsigned oldPositionSSbo;
   unsigned accelerationSSbo;
   unsigned constraintSSbo;
-
 
   void retriveData();
 

@@ -27,6 +27,8 @@ void Cloth::generateBuffers(unsigned particleNumber, unsigned constraintNumber)
   glGenBuffers(1, &oldPositionSSbo);
   glGenBuffers(1, &accelerationSSbo);
   glGenBuffers(1, &constraintSSbo);
+
+
   glGenBuffers(1, &EBO);
 
   glGenVertexArrays(1, &VAO);
@@ -53,8 +55,9 @@ void Cloth::generateBuffers(unsigned particleNumber, unsigned constraintNumber)
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, accelerationSSbo);
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, constraintSSbo);
-  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintsData.size() * sizeof(glm::vec4), constraintsData.data(), GL_STREAM_COPY);
+  glBufferData(GL_SHADER_STORAGE_BUFFER, constraintsDataAlligned.size() * sizeof(glm::vec4), constraintsDataAlligned.data(), GL_STREAM_COPY);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, constraintSSbo);
+
 
 }
 
@@ -167,8 +170,8 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
     }
   }
 
-  // making the upper left most two and right most two particles unmovable
-  for (int i = 0; i < 2; i++)
+  // making the upper left most three and right most three particles unmovable
+  for (int i = 0; i < 3; i++)
   {
     GetParticle(0 + i, 0)->SetMoveable(false);
     GetParticle(particlesWidthNumber - 1 - i, 0)->SetMoveable(false);
@@ -200,38 +203,55 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
 
       if (x < particlesWidthNumber - 1)
       {
-         Constraint constraint = Constraint(GetParticle(x, y), GetParticle(x + 1, y));
+        //structural springs
+        Constraint constraint = Constraint(GetParticle(x, y), GetParticle(x + 1, y));
 
         constraintsData.push_back(glm::vec4(constraint.p1->getIndex(),
                                             constraint.p2->getIndex(), constraint.getRestDistance(), 0));
-        //MakeConstriant(GetParticle(x, y), GetParticle(x + 1, y));
+        constraintsData_1.push_back(glm::vec4(constraint.p1->getIndex(),
+                                              constraint.p2->getIndex(), constraint.getRestDistance(), 0));
+
+        MakeConstriant(GetParticle(x, y), GetParticle(x + 1, y));
       }
 
       if (y < particlesHeightNumber - 1)
       {
-         Constraint constraint = Constraint(GetParticle(x, y), GetParticle(x, y + 1));
+        //structural springs
+        Constraint constraint = Constraint(GetParticle(x, y), GetParticle(x, y + 1));
 
         constraintsData.push_back(glm::vec4(constraint.p1->getIndex(),
                                             constraint.p2->getIndex(), constraint.getRestDistance(), 0));
-        //MakeConstriant(GetParticle(x, y), GetParticle(x, y + 1));
+        constraintsData_2.push_back(glm::vec4(constraint.p1->getIndex(),
+                                              constraint.p2->getIndex(), constraint.getRestDistance(), 0));
+
+        MakeConstriant(GetParticle(x, y), GetParticle(x, y + 1));
       }
 
       if (x < particlesWidthNumber - 1 && y < particlesHeightNumber - 1)
       {
-         Constraint constraint = Constraint(GetParticle(x, y), GetParticle(x + 1, y + 1));
+        //shear springs
+        Constraint constraint = Constraint(GetParticle(x, y), GetParticle(x + 1, y + 1));
 
         constraintsData.push_back(glm::vec4(constraint.p1->getIndex(),
                                             constraint.p2->getIndex(), constraint.getRestDistance(), 0));
-        //MakeConstriant(GetParticle(x, y), GetParticle(x + 1, y + 1));
+        constraintsData_3.push_back(glm::vec4(constraint.p1->getIndex(),
+                                              constraint.p2->getIndex(), constraint.getRestDistance(), 0));
+
+        MakeConstriant(GetParticle(x, y), GetParticle(x + 1, y + 1));
       }
 
       if (x < particlesWidthNumber - 1 && y < particlesHeightNumber - 1)
       {
-         Constraint constraint = Constraint(GetParticle(x + 1, y), GetParticle(x, y + 1));
+        //shear springs
+        Constraint constraint = Constraint(GetParticle(x + 1, y), GetParticle(x, y + 1));
 
         constraintsData.push_back(glm::vec4(constraint.p1->getIndex(),
                                             constraint.p2->getIndex(), constraint.getRestDistance(), 0));
-        //MakeConstriant(GetParticle(x + 1, y), GetParticle(x, y + 1));
+
+        constraintsData_4.push_back(glm::vec4(constraint.p1->getIndex(),
+                                              constraint.p2->getIndex(), constraint.getRestDistance(), 0));
+
+        MakeConstriant(GetParticle(x + 1, y), GetParticle(x, y + 1));
       }
     }
   }
@@ -242,20 +262,29 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
     {
       if (x < particlesWidthNumber - 2)
       {
-
+        //flexion springs
         Constraint constraint = Constraint(GetParticle(x, y), GetParticle(x + 2, y));
 
         constraintsData.push_back(glm::vec4(constraint.p1->getIndex(),
                                             constraint.p2->getIndex(), constraint.getRestDistance(), 0));
+
+        constraintsData_5.push_back(glm::vec4(constraint.p1->getIndex(),
+                                              constraint.p2->getIndex(), constraint.getRestDistance(), 0));
+
+        MakeConstriant(GetParticle(x, y), GetParticle(x + 2, y));
       }
-      //MakeConstriant(GetParticle(x, y), GetParticle(x + 2, y));
+
       if (y < particlesHeightNumber - 2)
       {
+        //flexion springs
         Constraint constraint = Constraint(GetParticle(x, y), GetParticle(x, y + 2));
         constraintsData.push_back(glm::vec4(constraint.p1->getIndex(),
                                             constraint.p2->getIndex(), constraint.getRestDistance(), 0));
 
-        //MakeConstriant(GetParticle(x, y), GetParticle(x, y + 2));
+        constraintsData_6.push_back(glm::vec4(constraint.p1->getIndex(),
+                                              constraint.p2->getIndex(), constraint.getRestDistance(), 0));
+
+        MakeConstriant(GetParticle(x, y), GetParticle(x, y + 2));
       }
       if (x < particlesWidthNumber - 2 && y < particlesHeightNumber - 2)
       {
@@ -264,7 +293,10 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
         constraintsData.push_back(glm::vec4(constraint.p1->getIndex(),
                                             constraint.p2->getIndex(), constraint.getRestDistance(), 0));
 
-        //MakeConstriant(GetParticle(x, y), GetParticle(x + 2, y + 2));
+        constraintsData_7.push_back(glm::vec4(constraint.p1->getIndex(),
+                                              constraint.p2->getIndex(), constraint.getRestDistance(), 0));
+
+        MakeConstriant(GetParticle(x, y), GetParticle(x + 2, y + 2));
       }
       if (x < particlesWidthNumber - 2 && y < particlesHeightNumber - 2)
       {
@@ -273,11 +305,15 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
         constraintsData.push_back(glm::vec4(constraint.p1->getIndex(),
                                             constraint.p2->getIndex(), constraint.getRestDistance(), 0));
 
-        //MakeConstriant(GetParticle(x + 2, y), GetParticle(x, y + 2));
+        constraintsData_8.push_back(glm::vec4(constraint.p1->getIndex(),
+                                              constraint.p2->getIndex(), constraint.getRestDistance(), 0));
+
+        MakeConstriant(GetParticle(x + 2, y), GetParticle(x, y + 2));
       }
     }
   }
 
+  FillAllignedData();
 
   std::cout << "\n";
   std::cout << "Cloth buffers generation test:"
@@ -286,9 +322,55 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
   std::cout << "OldPositionData Size :" << oldPositionData.size() << "\n";
   std::cout << "AccelerationData Size :" << accelerationsData.size() << "\n";
   std::cout << "ConstraintsData Size :" << constraintsData.size() << "\n";
+  std::cout << "ConstraintsDataAlligned Size :" << constraintsDataAlligned.size() << "\n";
+  std::cout << "ConstraintsDataAlligned divided by 8 Size :" << constraintsDataAlligned.size()/8 << "\n";
+
   std::cout << "\n";
 
   generateBuffers(particlesWidthNumber * particlesHeightNumber, CPUconstraints.size());
+}
+
+void Cloth::FillAllignedData()
+{
+  for (auto constraint : constraintsData_1)
+  {
+    constraintsDataAlligned.push_back(constraint);
+  }
+
+  for (auto constraint : constraintsData_2)
+  {
+    constraintsDataAlligned.push_back(constraint);
+  }
+
+  for (auto constraint : constraintsData_3)
+  {
+    constraintsDataAlligned.push_back(constraint);
+  }
+
+  for (auto constraint : constraintsData_4)
+  {
+    constraintsDataAlligned.push_back(constraint);
+  }
+
+  for (auto constraint : constraintsData_5)
+  {
+    constraintsDataAlligned.push_back(constraint);
+  }
+
+  for (auto constraint : constraintsData_6)
+  {
+    constraintsDataAlligned.push_back(constraint);
+  }
+
+  for (auto constraint : constraintsData_7)
+  {
+    constraintsDataAlligned.push_back(constraint);
+  }
+
+  for (auto constraint : constraintsData_8)
+  {
+    constraintsDataAlligned.push_back(constraint);
+  }
 }
 
 std::vector<Particle> &Cloth::GetParticles() { return CPUparticles; }
@@ -365,26 +447,26 @@ void Cloth::AddForce(glm::vec3 direction)
   }
 }
 
-  void Cloth::AddForceGPU(glm::vec3 force,std::vector<int> indicies)
+void Cloth::AddForceGPU(glm::vec3 force, std::vector<int> indicies)
+{
+  for (auto indic : indicies)
   {
-    for(auto indic : indicies)
-    {
-         accelerationsData[indic] += glm::vec4(force.x, force.y, force.z, 0);
-    }
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER, accelerationSSbo);
+    accelerationsData[indic] += glm::vec4(force.x, force.y, force.z, 0);
+  }
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, accelerationSSbo);
   glBufferData(GL_SHADER_STORAGE_BUFFER, accelerationsData.size() * sizeof(glm::vec4), accelerationsData.data(), GL_STREAM_COPY);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, accelerationSSbo);
-  }
-  void Cloth::AddForceGPU(glm::vec3 force)
+}
+void Cloth::AddForceGPU(glm::vec3 force)
+{
+  for (int i = 0; i < accelerationsData.size(); i++)
   {
-    for(int i =0;i<accelerationsData.size();i++)
-    {
-        accelerationsData[i] += glm::vec4(force.x, force.y, force.z, 0);
-    }
-      glBindBuffer(GL_SHADER_STORAGE_BUFFER, accelerationSSbo);
+    accelerationsData[i] += glm::vec4(force.x, force.y, force.z, 0);
+  }
+  glBindBuffer(GL_SHADER_STORAGE_BUFFER, accelerationSSbo);
   glBufferData(GL_SHADER_STORAGE_BUFFER, accelerationsData.size() * sizeof(glm::vec4), accelerationsData.data(), GL_STREAM_COPY);
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, accelerationSSbo);
-  }
+}
 
 void Cloth::AddForceToParticle_2(glm::vec3 force, unsigned width, unsigned height)
 {
@@ -417,7 +499,7 @@ void Cloth::Draw(Shader *shader, Transform &transform)
 
   unsigned int transformLoc = glGetUniformLocation(shader->shaderProgramID, "transform");
   glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform.getTransform()));
- 
+
   //glPointSize(10);
   glBindVertexArray(VAO);
   glDrawElements(GL_TRIANGLES, indiciesSize, GL_UNSIGNED_INT, 0);

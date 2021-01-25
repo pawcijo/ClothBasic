@@ -131,6 +131,7 @@ Window::Window(uint16_t Width, uint16_t height, const char *title) : iWidth(Widt
         fprintf(stderr, "Failed to initialize GLEW\n");
     }   
 
+	/*
     int ExtensionCount;
     glGetIntegerv(GL_NUM_EXTENSIONS, &ExtensionCount);
     std::cout << ExtensionCount << std::endl;
@@ -144,6 +145,7 @@ Window::Window(uint16_t Width, uint16_t height, const char *title) : iWidth(Widt
         glDebugMessageCallback(glDebugOutput, nullptr);
         glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, GL_TRUE);
     }
+	*/
 
     // Ensure we can capture the escape key being pressed below
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);

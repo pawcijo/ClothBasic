@@ -18,12 +18,12 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 static ClothApp *ptr;
 ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::ConfigLoader()),
-cloth1(std::get<float>(config.GetValueFromMap("ClothWidth")),
-	std::get<float>(config.GetValueFromMap("ClothHeight")),
-	std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber")),
-	std::get<unsigned>(config.GetValueFromMap("ParticleHeightNumber"))),
-	clothController(cloth1),
-	clothDebugInfo(cloth1, clothController)
+									 cloth1(std::get<float>(config.GetValueFromMap("ClothWidth")),
+											std::get<float>(config.GetValueFromMap("ClothHeight")),
+											std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber")),
+											std::get<unsigned>(config.GetValueFromMap("ParticleHeightNumber"))),
+									 clothController(cloth1),
+									 clothDebugInfo(cloth1, clothController)
 {
 
 	ptr = this;
@@ -49,6 +49,7 @@ cloth1(std::get<float>(config.GetValueFromMap("ClothWidth")),
 	// Setup delta time
 	// TODO change to elapsed time
 	clothResolveShader->use();
+	clothResolveShader->setFloat("springConstant",1); 
 	glUniform1f(0, dt);
 	clothUpdateShader->use();
 	glUniform1f(0, dt);
@@ -108,90 +109,38 @@ void ClothApp::Update()
 void ClothApp::PhysixUpdate()
 {
 
-	cloth1.AddForce(glm::vec3(0.5, -0.2, 0.2) *
-		TIME_STEPSIZE2); // TODO change  time_step to reliable time
-
-	cloth1.Update(TIME_STEPSIZE2, 5);
-
-	/*
-		std::cout<<"\n";
-		std::cout << "\n" << "GPU :" << "\n";
-		for(int i = 0;i<10;i++)
+	if (CPU_SIMULATION_ON)
 	{
-			int firstVerticleId = cloth1.getConstraintsData()[i].x;
-			int secondParticleId = cloth1.getConstraintsData()[i].y;
+		cloth1.AddForce(glm::vec3(0, -0.2, 0) *
+			TIME_STEPSIZE2); // TODO change  time_step to reliable time
 
-			float P1_x = cloth1.getPositionData()[firstVerticleId].x;
-			float P2_x = cloth1.getPositionData()[secondParticleId].x;
-
-			float P1_y = cloth1.getPositionData()[firstVerticleId].y;
-			float P2_y = cloth1.getPositionData()[secondParticleId].y;
-
-			float P1_z = cloth1.getPositionData()[firstVerticleId].z;
-			float P2_z = cloth1.getPositionData()[secondParticleId].z;
-			
-			bool P1_moveable = cloth1.getPositionData()[firstVerticleId].w;
-			bool P2_moveable = cloth1.getPositionData()[secondParticleId].w;
-
-			glm::vec4 P1_Acceler = cloth1.getAcelerationsData()[firstVerticleId];
-			glm::vec4 P2_Acceler = cloth1.getAcelerationsData()[secondParticleId];
-
-
-			std::cout << "Contraint [" << i << "]: \n"
-				<< "Indexes : " << firstVerticleId << " | " << secondParticleId << "\n"
-				<< "Cords :" << P1_x << " " << P1_y << " " << P1_z << " | " << P2_x << " " << P2_y << " " << P2_z << "\n"
-				<< "Acceleration: " << P1_Acceler.x << " " << P1_Acceler.y << " " << P1_Acceler.z << " | "
-				<< P2_Acceler.x << " " << P2_Acceler.y << " " << P2_Acceler.z << "\n"
-				<< "P1 moveable : " << P1_moveable << " P2 moveable : " << P2_moveable << "\n";
-
+		cloth1.Update(TIME_STEPSIZE2, 5);
 	}
-	
-
-		std::cout << "\n" << "CPU :" << "\n";
-		for (int i = 0; i < 10; i++)
-		{
-			int firstVerticleId = cloth1.CPUconstraints[i].p1->getIndex();
-			int secondParticleId = cloth1.CPUconstraints[i].p2->getIndex();
-
-			float P1_x = cloth1.CPUparticles[firstVerticleId].GetPosition().x;
-			float P2_x = cloth1.CPUparticles[secondParticleId].GetPosition().x;
-
-			float P1_y = cloth1.CPUparticles[firstVerticleId].GetPosition().y;
-			float P2_y = cloth1.CPUparticles[secondParticleId].GetPosition().y;
-
-			float P1_z = cloth1.CPUparticles[firstVerticleId].GetPosition().z;
-			float P2_z = cloth1.CPUparticles[secondParticleId].GetPosition().z;
-
-			glm::vec3 P1_Acceler = cloth1.CPUparticles[firstVerticleId].GetAcceleration();
-			glm::vec3 P2_Acceler = cloth1.CPUparticles[secondParticleId].GetAcceleration();
-
-
-			std::cout << "Contraint [" << i << "]: \n"
-				<< "Indexes : " << firstVerticleId << " | " << secondParticleId << "\n"
-				<< "Cords : " << P1_x << " " << P1_y << " " << P1_z << " | " << P2_x << " " << P2_y << " " << P2_z << "\n"
-				<< "Acceleration: " << P1_Acceler.x <<" "<<P1_Acceler.y <<" " << P1_Acceler.z <<" | "  
-				<< P2_Acceler.x<< " "<<P2_Acceler.y <<" " << P2_Acceler.z << "\n"; 
-
-		}
-		*/
-
 
 	clothResolveShader->use();
 	clothResolveShader->setFloat("time", glfwGetTime());
-	//for (int i = 0; i < 5; i++)
-	glDispatchCompute(std::ceil(cloth1.getConstraintsData().size() / 1024.0), 1, 1);
-	cloth1.retriveData();
-
+	int constraintSize = cloth1.getConstraintsData().size() / 8;
 
 	
+		
+		for (int i = 0; i < 8; i++)
+		{
+			for (int j = 0; j < 25; j++)
+			{
+			clothResolveShader->setInt("computeNumber", j + 1);
+			clothResolveShader->setInt("constraintNumber", i);
+			clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) *i);
+			glDispatchCompute(std::ceil(constraintSize/512.0), 1, 1);
+			}
+		}
+	
+	cloth1.retriveData();
+
 	clothUpdateShader->use();
 	clothUpdateShader->setFloat("time", glfwGetTime());
-	cloth1.AddForceGPU(glm::vec3(0.5, -0.2, 0.2));
+	cloth1.AddForceGPU(glm::vec3(0, -0.5, 0));
 	glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
 	cloth1.retriveData();
-	
-
-
 }
 
 void ClothApp::run()
@@ -254,6 +203,7 @@ void ClothApp::run()
 	const int TICKS_PER_SECOND = 64;
 	const int SKIP_TICKS = 1000 / TICKS_PER_SECOND;
 	const int MAX_FRAMESKIP = 5;
+
 
 	while (!glfwWindowShouldClose(windowRef.window))
 	{
@@ -376,6 +326,24 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 		printf("keyPressedStatus :  %s \n", keyPressedStatus[key] ? "true" : "false");
 	}
 
+	if (key == GLFW_KEY_6 && action == GLFW_PRESS)
+	{
+
+		keyPressedStatus[key] = keyPressedStatus[key] ? false : true;
+		CPU_SIMULATION_ON != CPU_SIMULATION_ON;
+
+		if (keyPressedStatus[key])
+		{
+			CPU_SIMULATION_ON = true;
+			std::cout << "CPU SIMULATION ON \n";
+		}
+		else
+		{
+			CPU_SIMULATION_ON = false;
+			std::cout << "CPU SIMULATION OFF \n";
+		}
+	}
+
 	if (key == GLFW_KEY_P && action == GLFW_PRESS)
 	{
 		ptr->clothDebugInfo.ShowLastRowInfo();
@@ -419,3 +387,83 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 	posx = xpos;
 	posy = ypos;
 }
+
+// add to update to get info about last row position
+/*
+	std::cout<<"\n";
+	std::cout << "\n" << "GPU :" << "\n";
+	for(int i = 0;i<10;i++)
+{
+		int firstVerticleId = cloth1.getConstraintsData()[i].x;
+		int secondParticleId = cloth1.getConstraintsData()[i].y;
+
+		float P1_x = cloth1.getPositionData()[firstVerticleId].x;
+		float P2_x = cloth1.getPositionData()[secondParticleId].x;
+
+		float P1_y = cloth1.getPositionData()[firstVerticleId].y;
+		float P2_y = cloth1.getPositionData()[secondParticleId].y;
+
+		float P1_z = cloth1.getPositionData()[firstVerticleId].z;
+		float P2_z = cloth1.getPositionData()[secondParticleId].z;
+
+		bool P1_moveable = cloth1.getPositionData()[firstVerticleId].w;
+		bool P2_moveable = cloth1.getPositionData()[secondParticleId].w;
+
+		glm::vec4 P1_Acceler = cloth1.getAcelerationsData()[firstVerticleId];
+		glm::vec4 P2_Acceler = cloth1.getAcelerationsData()[secondParticleId];
+
+
+		std::cout << "Contraint [" << i << "]: \n"
+			<< "Indexes : " << firstVerticleId << " | " << secondParticleId << "\n"
+			<< "Cords :" << P1_x << " " << P1_y << " " << P1_z << " | " << P2_x << " " << P2_y << " " << P2_z << "\n"
+			<< "Acceleration: " << P1_Acceler.x << " " << P1_Acceler.y << " " << P1_Acceler.z << " | "
+			<< P2_Acceler.x << " " << P2_Acceler.y << " " << P2_Acceler.z << "\n"
+			<< "P1 moveable : " << P1_moveable << " P2 moveable : " << P2_moveable << "\n";
+
+}
+
+
+	std::cout << "\n" << "CPU :" << "\n";
+	for (int i = 0; i < 10; i++)
+	{
+		int firstVerticleId = cloth1.CPUconstraints[i].p1->getIndex();
+		int secondParticleId = cloth1.CPUconstraints[i].p2->getIndex();
+
+		float P1_x = cloth1.CPUparticles[firstVerticleId].GetPosition().x;
+		float P2_x = cloth1.CPUparticles[secondParticleId].GetPosition().x;
+
+		float P1_y = cloth1.CPUparticles[firstVerticleId].GetPosition().y;
+		float P2_y = cloth1.CPUparticles[secondParticleId].GetPosition().y;
+
+		float P1_z = cloth1.CPUparticles[firstVerticleId].GetPosition().z;
+		float P2_z = cloth1.CPUparticles[secondParticleId].GetPosition().z;
+
+		glm::vec3 P1_Acceler = cloth1.CPUparticles[firstVerticleId].GetAcceleration();
+		glm::vec3 P2_Acceler = cloth1.CPUparticles[secondParticleId].GetAcceleration();
+
+
+		std::cout << "Contraint [" << i << "]: \n"
+			<< "Indexes : " << firstVerticleId << " | " << secondParticleId << "\n"
+			<< "Cords : " << P1_x << " " << P1_y << " " << P1_z << " | " << P2_x << " " << P2_y << " " << P2_z << "\n"
+			<< "Acceleration: " << P1_Acceler.x <<" "<<P1_Acceler.y <<" " << P1_Acceler.z <<" | "
+			<< P2_Acceler.x<< " "<<P2_Acceler.y <<" " << P2_Acceler.z << "\n";
+
+	}
+	*/
+
+//TO DODO's
+/*
+
+  *	DIVIDE CONTRAINTS 
+	to remove race conditions  
+	Notes:
+	- 8 new buffers, same size and same shader, the forumal is the same (move based on rest distance and particle positions)
+	- done for now with offset that needs to be update with legit 8 buffers
+
+
+  * add imgui live variable change   [must have] [26]
+  * create selfcolision compute shader [must have] [27-28]
+  * create otherobject collision shader [must have] [28-30]
+
+
+*/
