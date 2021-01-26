@@ -11,6 +11,11 @@
 #include <glm/glm.hpp>
 #include <cmath>
 
+//imgui
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 float dt = 1.0f / 60.0f;
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
@@ -49,7 +54,7 @@ ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::Conf
 	// Setup delta time
 	// TODO change to elapsed time
 	clothResolveShader->use();
-	clothResolveShader->setFloat("springConstant",1); 
+	clothResolveShader->setFloat("springConstant", *springConstant);
 	glUniform1f(0, dt);
 	clothUpdateShader->use();
 	glUniform1f(0, dt);
@@ -57,26 +62,29 @@ ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::Conf
 
 void ClothApp::processMouse()
 {
-	if (mouseCallBack)
+	if (processMouseMovement)
 	{
-		if (mouseToUpdate)
+		if (mouseCallBack)
 		{
-			mouseToUpdate = false;
-			if (firstMouse)
+			if (mouseToUpdate)
 			{
+				mouseToUpdate = false;
+				if (firstMouse)
+				{
+					lastX = posx;
+					lastY = posy;
+					firstMouse = false;
+				}
+
+				float xoffset = posx - lastX;
+				float yoffset =
+					lastY - posy; // reversed since y-coordinates go from bottom to top
+
 				lastX = posx;
 				lastY = posy;
-				firstMouse = false;
+
+				camera.ProcessMouseMovement(xoffset, yoffset);
 			}
-
-			float xoffset = posx - lastX;
-			float yoffset =
-				lastY - posy; // reversed since y-coordinates go from bottom to top
-
-			lastX = posx;
-			lastY = posy;
-
-			camera.ProcessMouseMovement(xoffset, yoffset);
 		}
 	}
 }
@@ -112,28 +120,27 @@ void ClothApp::PhysixUpdate()
 	if (CPU_SIMULATION_ON)
 	{
 		cloth1.AddForce(glm::vec3(0, -0.2, 0) *
-			TIME_STEPSIZE2); // TODO change  time_step to reliable time
+						TIME_STEPSIZE2); // TODO change  time_step to reliable time
 
 		cloth1.Update(TIME_STEPSIZE2, 5);
 	}
 
 	clothResolveShader->use();
 	clothResolveShader->setFloat("time", glfwGetTime());
+	clothResolveShader->setFloat("springConstant", *springConstant);
 	int constraintSize = cloth1.getConstraintsData().size() / 8;
 
-	
-		
+	for (int j = 0; j < *clothConstraintsResolvePerUpdate; j++)
+	{
+
+		clothResolveShader->setInt("computeNumber", j);
 		for (int i = 0; i < 8; i++)
 		{
-			for (int j = 0; j < 25; j++)
-			{
-			clothResolveShader->setInt("computeNumber", j + 1);
 			clothResolveShader->setInt("constraintNumber", i);
-			clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) *i);
-			glDispatchCompute(std::ceil(constraintSize/512.0), 1, 1);
-			}
+			clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
+			glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
 		}
-	
+	}
 	cloth1.retriveData();
 
 	clothUpdateShader->use();
@@ -204,6 +211,22 @@ void ClothApp::run()
 	const int SKIP_TICKS = 1000 / TICKS_PER_SECOND;
 	const int MAX_FRAMESKIP = 5;
 
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO &io = ImGui::GetIO();
+	(void)io;
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(windowRef.window, true);
+	const char *glsl_version = "#version 430";
+	ImGui_ImplOpenGL3_Init(glsl_version);
 
 	while (!glfwWindowShouldClose(windowRef.window))
 	{
@@ -229,6 +252,10 @@ void ClothApp::run()
 			float((glfwGetTime() * 1000) + SKIP_TICKS - next_tick) /
 			float(SKIP_TICKS);
 
+
+
+		ImGuiStuff();
+
 		// render
 		// ------
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -250,11 +277,18 @@ void ClothApp::run()
 		//draw 2D
 		circle.Draw(shader2D);
 
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(windowRef.window);
 		glfwPollEvents();
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
 	glfwTerminate();
 }
 
@@ -316,10 +350,13 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 		keyPressedStatus[key] = keyPressedStatus[key] ? false : true;
 		if (keyPressedStatus[key])
 		{
+			processMouseMovement = false;
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 		}
 		else
 		{
+
+			processMouseMovement = true;
 			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		}
 
@@ -386,6 +423,20 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 	mouseToUpdate = true;
 	posx = xpos;
 	posy = ypos;
+}
+
+void ClothApp::ImGuiStuff()
+{
+	// Start the Dear ImGui frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+	ImGui::Begin("Hello, world!");
+	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::SliderInt("Contraints Resolve Per Update", clothConstraintsResolvePerUpdate, 0, 1000);
+	ImGui::SliderFloat("Spring constant", springConstant, 0.001, 1);
+	ImGui::End();
+	ImGui::Render();
 }
 
 // add to update to get info about last row position
@@ -457,11 +508,10 @@ void cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
   *	DIVIDE CONTRAINTS 
 	to remove race conditions  
 	Notes:
-	- 8 new buffers, same size and same shader, the forumal is the same (move based on rest distance and particle positions)
-	- done for now with offset that needs to be update with legit 8 buffers
+	- 8 new buffers, same size and same shader, the forumala is the same (move based on rest distance and particle positions)
+	- partly done for now with offset that divides buffer to 8 alligned buffers
+	- [DONE] add imgui live variable change + fps counter from imgui <3  [must have] [26]
 
-
-  * add imgui live variable change   [must have] [26]
   * create selfcolision compute shader [must have] [27-28]
   * create otherobject collision shader [must have] [28-30]
 

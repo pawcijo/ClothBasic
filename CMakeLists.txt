@@ -17,6 +17,8 @@ add_subdirectory (external)
 
 include_directories(
 	Src/
+	external/imgui/
+	external/imgui/backends/
 	external/glfw-3.3.2/include/
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
@@ -58,6 +60,14 @@ add_executable(ClothBase
 	Src/Cloth/Model/Cloth.cpp
 	Src/Cloth/Constraint/Constraint.cpp
 	Src/Cloth/ClothController/ClothController.cpp 
+
+	#ImGui
+	external/imgui/imgui.cpp
+	external/imgui/imgui_tables.cpp
+	external/imgui/backends/imgui_impl_opengl3.cpp
+	external/imgui/backends/imgui_impl_glfw.cpp
+	external/imgui/imgui_draw.cpp
+	external/imgui/imgui_widgets.cpp
 
 	Src/ClothApp/ClothApp.cpp
 )

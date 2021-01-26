@@ -14,6 +14,7 @@
 
 static std::map<int,bool> keyPressedStatus;
 static bool mouseToUpdate = false;
+static bool processMouseMovement = true;
 static bool CPU_SIMULATION_ON = false;
 static double posx;
 static double posy;
@@ -69,6 +70,11 @@ class ClothApp
     
     unsigned clothParticleWidth;
     unsigned clothParticleHight;
+
+    //ImGui Params
+    int * clothConstraintsResolvePerUpdate = new int(200);
+    float * springConstant = new float(1);
+    double  * msPerFrame = new double(0);
     
     public:
     //Cloth
@@ -82,6 +88,7 @@ class ClothApp
     void processKeys();
     void processMouse();
     void setViewPerspective(Camera &aCamera);
+    void ImGuiStuff();
     ClothApp(Window &window);
     ~ClothApp() = default;
     

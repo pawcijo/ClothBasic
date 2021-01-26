@@ -53,6 +53,7 @@ class Cloth
   std::vector<glm::vec4> accelerationsData;
   std::vector<glm::vec4> constraintsData; //need to diviede to 8 groups
   std::vector<glm::vec4> constraintsDataAlligned; //need to diviede to 8 groups
+  std::vector<glm::vec4> constraintsDataAllignedByPosition; //need to diviede to 8 groups
 
 
   std::vector<glm::vec4> constraintsData_1;
@@ -84,6 +85,7 @@ class Cloth
   std::vector<glm::mat4 *> modelMatrices;
 
   void FillAllignedData();
+  void FillConstraintsAllinedByPoint();
 
 public:
   Cloth(float width, float height, unsigned partilceNumberWidth,
