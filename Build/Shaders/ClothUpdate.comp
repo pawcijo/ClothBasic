@@ -7,6 +7,10 @@ layout(local_size_x=512)in;
 
 uniform float time;
 
+uniform vec3 aaBBPosition;
+float aaBBSize=0.5;
+uniform bool checkCollision;
+
 layout(std430,binding=0)buffer Pos
 {
     vec4 positions[];// array of positions
@@ -33,28 +37,27 @@ layout(std430,binding=3)buffer con
 void main()
 {
     int N=int(gl_GlobalInvocationID.x);
-     if(N > positions.length()) return;
-
-    vec3 particle_position = positions[N].xyz;
-    vec3 particle_acceleration = accelerations[N].xyz;
-    bool moveable = bool(positions[N].w);
-    float DampingLenght=0.01f;
+    if(N>positions.length())return;
     
+    vec3 particle_position=positions[N].xyz;
+    vec3 particle_acceleration=accelerations[N].xyz;
+    bool moveable=bool(positions[N].w);
+    float DampingLenght=.01f;
     
     if(moveable)
     {
-    vec3 temporary = particle_position;
-    vec3 position = positions[N].xyz;
-    vec3 oldPosition = oldPositions[N].xyz;
-    vec3 acceleration = accelerations[N].xyz;
-
-    positions[N] = vec4(position+(position-oldPosition)*(1.f-DampingLenght)+
-    acceleration*dt,positions[N].w);
-
-    oldPositions[N]=vec4(temporary,0);
-   
+        vec3 temporary=particle_position;
+        vec3 position=positions[N].xyz;
+        vec3 oldPosition=oldPositions[N].xyz;
+        vec3 acceleration=accelerations[N].xyz;
+        vec3 newPosition=position+(position-oldPosition)*(1.f-DampingLenght)+
+        acceleration*dt;
+    
+        positions[N]=vec4(newPosition,positions[N].w);
+        
+        oldPositions[N]=vec4(temporary,0);
+        
     }
-	 accelerations[N]=vec4(0,0,0,0);
-
-
+    accelerations[N]=vec4(0,0,0,0);
+    
 }

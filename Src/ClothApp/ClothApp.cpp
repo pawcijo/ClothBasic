@@ -10,13 +10,14 @@
 #include "Src/Util/ClothGeneration/ClothGeneration.hpp"
 #include <glm/glm.hpp>
 #include <cmath>
+#include <chrono>
+
+#include "Src/Util/Utils/Utils.hpp"
 
 //imgui
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
-
-float dt = 1.0f / 60.0f;
 
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
@@ -43,6 +44,7 @@ ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::Conf
 	subDataShader3D_2 = new Shader("Shaders/SubDataCloth3D_2.vs", "Shaders/SubDataCloth3D_2.fs");
 	clothResolveShader = new Shader("", "", "Shaders/ClothResolve.comp");
 	clothUpdateShader = new Shader("", "", "Shaders/ClothUpdate.comp");
+	clothCollisionShader = new Shader("", "", "Shaders/ClothResolveCollision.comp");
 	lastX = windowRef.iHeight / 2;
 	lastY = windowRef.iWidth / 2;
 	clothParticleWidth = std::get<unsigned>(config.GetValueFromMap("ParticleWidthNumber"));
@@ -53,11 +55,13 @@ ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::Conf
 
 	// Setup delta time
 	// TODO change to elapsed time
+	float dt = 1.0f / 60.0f;
 	clothResolveShader->use();
 	clothResolveShader->setFloat("springConstant", *springConstant);
-	glUniform1f(0, dt);
+	clothResolveShader->setFloat("dt", dt);
+
 	clothUpdateShader->use();
-	glUniform1f(0, dt);
+	clothUpdateShader->setFloat("dt", dt);
 }
 
 void ClothApp::processMouse()
@@ -114,48 +118,99 @@ void ClothApp::Update()
 {
 }
 
-void ClothApp::PhysixUpdate()
+void ClothApp::PhysixUpdate(float elapsedTime)
 {
 
-	if (CPU_SIMULATION_ON)
-	{
-		cloth1.AddForce(glm::vec3(0, -0.2, 0) *
-						TIME_STEPSIZE2); // TODO change  time_step to reliable time
-
-		cloth1.Update(TIME_STEPSIZE2, 5);
-	}
-
-	clothResolveShader->use();
-	clothResolveShader->setFloat("time", glfwGetTime());
-	clothResolveShader->setFloat("springConstant", *springConstant);
-	int constraintSize = cloth1.getConstraintsData().size() / 8;
-
-	for (int j = 0; j < *clothConstraintsResolvePerUpdate; j++)
+	if (*CPU_SIMULATION_ON)
 	{
 
-		clothResolveShader->setInt("computeNumber", j);
-		for (int i = 0; i < 8; i++)
+		if (*cpuConstantTimeStep)
 		{
-			clothResolveShader->setInt("constraintNumber", i);
-			clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
-			glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
+			cloth1.AddForce(glm::vec3(0, *gravityForce, 0) *
+							TIME_STEPSIZE2);
+			cloth1.Update(TIME_STEPSIZE2, 25);
+		}
+		else
+		{
+			cloth1.AddForce(glm::vec3(0, *gravityForce, 0) *
+							elapsedTime);
+			cloth1.Update(elapsedTime, 25);
 		}
 	}
-	cloth1.retriveData();
 
-	clothUpdateShader->use();
-	clothUpdateShader->setFloat("time", glfwGetTime());
-	cloth1.AddForceGPU(glm::vec3(0, -0.5, 0));
-	glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
-	cloth1.retriveData();
+	if (*gpuClothResolveConstraintOn)
+	{
+		clothResolveShader->use();
+		clothResolveShader->setFloat("time", glfwGetTime());
+		clothResolveShader->setFloat("springConstant", *springConstant);
+		int constraintSize = cloth1.getConstraintsData().size() / 8;
+
+		for (int j = 0; j < *clothConstraintsResolvePerUpdate; j++)
+		{
+
+			clothResolveShader->setInt("computeNumber", j);
+			for (int i = 0; i < 8; i++)
+			{
+				if (i < 4)
+				{
+					for (int k = 0; k < *clothStructuralConstraintsRepetition; k++)
+					{
+						clothResolveShader->setInt("constraintNumber", i);
+						clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
+						glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
+					}
+				}
+				else
+				{
+					for (int k = 0; k < *clothShearAndBendingConstraintsRepetition; k++)
+					{
+						clothResolveShader->setInt("constraintNumber", i);
+						clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
+						glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
+					}
+				}
+			}
+		}
+		cloth1.retriveData();
+	}
+	glm::vec3 aaBBPostion = calculateAABBCenter(exampleToUpdate);
+	*aaBBXPosition = aaBBPostion.x;
+	*aaBBYPosition = aaBBPostion.y;
+	*aaBBZPosition = aaBBPostion.z;
+
+	if (*gpuClothUpdateOn)
+	{
+		clothUpdateShader->use();
+		clothUpdateShader->setVec3("aaBBPosition", aaBBPostion);
+		clothUpdateShader->setFloat("dt", elapsedTime);
+		clothUpdateShader->setBool("checkCollision", *gpuClothCollisionOn);
+
+		cloth1.AddForceGPU(glm::vec3(0, *gravityForce, 0));
+		glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
+		cloth1.retriveData();
+	}
+
+	if (*gpuClothCollisionOn)
+	{
+		clothCollisionShader->use();
+		clothCollisionShader->setVec3("aaBBPosition", aaBBPostion);
+		clothCollisionShader->setBool("checkCollision", *gpuClothCollisionOn);
+		cloth1.AddForceGPU(glm::vec3(0, *gravityForce, 0));
+		glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
+		cloth1.retriveData();
+	}
 }
 
 void ClothApp::run()
 {
 
 	camera.Position = glm::vec3(-100, 10, -5);
+
 	exampleToUpdate = Shapes::BatchedCube::vertices;
-	plane = Shapes::Rectangle::vertices;
+	for (int i = 0; i < exampleToUpdate.size(); i++)
+	{
+		exampleToUpdate[i] *= 10;
+	}
 
 	std::vector<unsigned> clothIndicies;
 	std::vector<float> clothColorBuffer;
@@ -163,14 +218,12 @@ void ClothApp::run()
 	clothColorBuffer = generateClothColor(cloth1.GetParticles().size());
 	clothIndicies = genereteIndicies(cloth1.GetClothSize());
 
-	Transform cubeTransform = Transform::origin();
-	Transform subDataCubeTransform = Transform::origin();
-	Transform subDataPlaneTransform = Transform::origin();
-	Transform circleTransform = Transform::origin();
 	Transform clothTransform = Transform::origin();
 	Transform gpuCloth = Transform::origin();
+	gpuCloth.translate(glm::vec3(300, 0, 0));
+	Transform subDataCubeTransform = Transform::origin();
 
-	gpuCloth.translate(glm::vec3(-100, 0, 0));
+	SubDataObject subDataCube(exampleToUpdate, Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
 
 	DrawMode configDrawMode = DrawMode(std::get<unsigned>(config.GetValueFromMap("Drawmode")));
 
@@ -183,26 +236,8 @@ void ClothApp::run()
 		printf("Config draw mode : Default \n");
 	}
 
-	Object3D cube(Shapes::Cube::vertices, Shapes::Cube::indices, cubeTransform);
-	cube.transform.scaleTransform(10, 10, 10);
-	cube.transform.translate(glm::vec3(-15.0f, 0.0f, 0.0f));
-
-	SubDataObject subDataCube(exampleToUpdate, Shapes::BatchedCube::colors, Shapes::Cube::indices, subDataCubeTransform);
-	subDataCube.transform.scaleTransform(10, 10, 10);
-	subDataCube.transform.translate(glm::vec3(10, 10, 10));
-
-	SubDataObject subDataPlace(plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices, subDataPlaneTransform);
-	subDataPlace.transform.scaleTransform(10, 10, 10);
-	subDataPlace.transform.translate(glm::vec3(10, 10, 10));
-
-	SubDataObject subDataCloth(clothController.GetVertexInfo(), clothColorBuffer, clothIndicies, clothTransform, configDrawMode);
-	subDataCloth.transform.scaleTransform(1, 1, 1);
-	subDataCloth.transform.translate(glm::vec3(1, 1, 1));
-
-	Circle circle(170, 0.5, circleTransform);
-	circleTransform.translate(glm::vec3(-0.93, 0.89, 0));
-	circleTransform.scaleTransform(1, (float)windowRef.iWidth / (float)windowRef.iHeight, 1);
-	circleTransform.scaleTransform(0.1, 0.1, 0.1);
+	SubDataObject subDataAABB(clothController.GetVertexInfo(), clothColorBuffer, clothIndicies, clothTransform);
+	SubDataObject subDataCloth(clothController.GetVertexInfo(), clothColorBuffer, clothIndicies, clothTransform);
 
 	unsigned next_tick = (glfwGetTime() * 1000);
 	int loops;
@@ -214,22 +249,22 @@ void ClothApp::run()
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO &io = ImGui::GetIO();
-	(void)io;
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsClassic();
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(windowRef.window, true);
 	const char *glsl_version = "#version 430";
 	ImGui_ImplOpenGL3_Init(glsl_version);
 
+	std::chrono::steady_clock::time_point end;
+	bool firstRun = true;
+	float timeElapsedInS;
+
 	while (!glfwWindowShouldClose(windowRef.window))
 	{
+
+		std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 
 		loops = 0;
 
@@ -237,8 +272,20 @@ void ClothApp::run()
 		{
 			processKeys();
 			processMouse();
+			if (firstRun)
+			{
+				timeElapsedInS = 1.0 / 60;
+				firstRun = false;
+			}
 
-			PhysixUpdate();
+			if (*realTimeCorrection)
+			{
+				PhysixUpdate(timeElapsedInS);
+			}
+			else
+			{
+				PhysixUpdate(1.0 / 60);
+			}
 
 			globalCameraPosition = camera.Position;
 			globalCameraYaw = camera.Yaw;
@@ -252,8 +299,6 @@ void ClothApp::run()
 			float((glfwGetTime() * 1000) + SKIP_TICKS - next_tick) /
 			float(SKIP_TICKS);
 
-
-
 		ImGuiStuff();
 
 		// render
@@ -265,24 +310,23 @@ void ClothApp::run()
 		glEnable(GL_DEPTH_TEST);
 		setViewPerspective(camera);
 
-		subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::BatchedCube::colors, Shapes::BatchedCube::indices);
-		subDataPlace.Draw(subDataShader3D, plane, Shapes::Rectangle::colors, Shapes::Rectangle::indices);
-		subDataCloth.Draw(subDataShader3D, clothController.GetVertexInfo(), clothColorBuffer, clothIndicies);
-		//subDataCloth.Draw2(subDataShader3D_2, clothController.GetVertexInfo_2(), clothColorBuffer, clothIndicies);
-
-		clothController.Draw(subDataShader3D_2, gpuCloth);
-		cube.Draw(shader3D);
+		subDataCloth.Draw(subDataShader3D, clothController.GetVertexInfo(), clothColorBuffer, clothIndicies, *CpuWireFrameMode);
+		clothController.Draw(subDataShader3D_2, gpuCloth, *GpuWireFrameMode);
+		if (*drawAABB)
+			subDataCube.Draw(subDataShader3D, exampleToUpdate, Shapes::BatchedCube::colors, Shapes::BatchedCube::indices, *CpuWireFrameMode);
 
 		glDisable(GL_DEPTH_TEST);
 		//draw 2D
-		circle.Draw(shader2D);
-
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
 		glfwSwapBuffers(windowRef.window);
 		glfwPollEvents();
+
+		end = std::chrono::steady_clock::now();
+
+		timeElapsedInS = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count() / 1000000.0;
 	}
 
 	ImGui_ImplOpenGL3_Shutdown();
@@ -363,24 +407,6 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 		printf("keyPressedStatus :  %s \n", keyPressedStatus[key] ? "true" : "false");
 	}
 
-	if (key == GLFW_KEY_6 && action == GLFW_PRESS)
-	{
-
-		keyPressedStatus[key] = keyPressedStatus[key] ? false : true;
-		CPU_SIMULATION_ON != CPU_SIMULATION_ON;
-
-		if (keyPressedStatus[key])
-		{
-			CPU_SIMULATION_ON = true;
-			std::cout << "CPU SIMULATION ON \n";
-		}
-		else
-		{
-			CPU_SIMULATION_ON = false;
-			std::cout << "CPU SIMULATION OFF \n";
-		}
-	}
-
 	if (key == GLFW_KEY_P && action == GLFW_PRESS)
 	{
 		ptr->clothDebugInfo.ShowLastRowInfo();
@@ -431,89 +457,59 @@ void ClothApp::ImGuiStuff()
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-	ImGui::Begin("Hello, world!");
+	ImGui::Begin("Cloth simulation");
+	ImGui::Text("This is simple cloth simulation on cpu and gpu, press M to add Forece and make it move !");
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	ImGui::Text("AABB position  %.3f  %.3f  %.3f ", *aaBBXPosition, *aaBBYPosition, *aaBBZPosition);
 	ImGui::SliderInt("Contraints Resolve Per Update", clothConstraintsResolvePerUpdate, 0, 1000);
+	ImGui::SliderInt("Contraints Structural Resolve Per Update", clothStructuralConstraintsRepetition, 0, 100);
+	ImGui::SliderInt("Contraints Shear And Bending Resolve Per Update", clothShearAndBendingConstraintsRepetition, 0, 100);
+
 	ImGui::SliderFloat("Spring constant", springConstant, 0.001, 1);
+	ImGui::SliderFloat("Gravity Force", gravityForce, -5, 1);
+	ImGui::Checkbox("ClothUpdateOn", gpuClothUpdateOn);
+	ImGui::Checkbox("ClothResolveConstraintOn", gpuClothResolveConstraintOn);
+	ImGui::Checkbox("GPU WireFrameMode", GpuWireFrameMode);
+	ImGui::Checkbox("CPU WireFrameMode", CpuWireFrameMode);
+	ImGui::Checkbox("Draw AABB", drawAABB);
+	ImGui::Checkbox("CPU simulation", CPU_SIMULATION_ON);
+	ImGui::Checkbox("Time(Chrono) interpolation", realTimeCorrection);
+	ImGui::Checkbox("Constant time step for cpu", cpuConstantTimeStep);
+
+	
+
+	ImGui::SameLine();
+	ImGui::Checkbox("ClothCollisionOn", gpuClothCollisionOn);
+
+	if (ImGui::Button("AABB UP"))
+	{
+		moveAABB(exampleToUpdate, glm::vec3(0, 1, 0));
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("AABB DOWN"))
+	{
+		moveAABB(exampleToUpdate, glm::vec3(0, -1, 0));
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("AABB LEFT"))
+	{
+		moveAABB(exampleToUpdate, glm::vec3(-1, 0, 0));
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("AABB RIGHT"))
+	{
+		moveAABB(exampleToUpdate, glm::vec3(1, 0, 0));
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("AABB FORWARD"))
+	{
+		moveAABB(exampleToUpdate, glm::vec3(0, 0, 1));
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("AABB BACKWARD"))
+	{
+		moveAABB(exampleToUpdate, glm::vec3(0, 0, -1));
+	}
 	ImGui::End();
 	ImGui::Render();
 }
-
-// add to update to get info about last row position
-/*
-	std::cout<<"\n";
-	std::cout << "\n" << "GPU :" << "\n";
-	for(int i = 0;i<10;i++)
-{
-		int firstVerticleId = cloth1.getConstraintsData()[i].x;
-		int secondParticleId = cloth1.getConstraintsData()[i].y;
-
-		float P1_x = cloth1.getPositionData()[firstVerticleId].x;
-		float P2_x = cloth1.getPositionData()[secondParticleId].x;
-
-		float P1_y = cloth1.getPositionData()[firstVerticleId].y;
-		float P2_y = cloth1.getPositionData()[secondParticleId].y;
-
-		float P1_z = cloth1.getPositionData()[firstVerticleId].z;
-		float P2_z = cloth1.getPositionData()[secondParticleId].z;
-
-		bool P1_moveable = cloth1.getPositionData()[firstVerticleId].w;
-		bool P2_moveable = cloth1.getPositionData()[secondParticleId].w;
-
-		glm::vec4 P1_Acceler = cloth1.getAcelerationsData()[firstVerticleId];
-		glm::vec4 P2_Acceler = cloth1.getAcelerationsData()[secondParticleId];
-
-
-		std::cout << "Contraint [" << i << "]: \n"
-			<< "Indexes : " << firstVerticleId << " | " << secondParticleId << "\n"
-			<< "Cords :" << P1_x << " " << P1_y << " " << P1_z << " | " << P2_x << " " << P2_y << " " << P2_z << "\n"
-			<< "Acceleration: " << P1_Acceler.x << " " << P1_Acceler.y << " " << P1_Acceler.z << " | "
-			<< P2_Acceler.x << " " << P2_Acceler.y << " " << P2_Acceler.z << "\n"
-			<< "P1 moveable : " << P1_moveable << " P2 moveable : " << P2_moveable << "\n";
-
-}
-
-
-	std::cout << "\n" << "CPU :" << "\n";
-	for (int i = 0; i < 10; i++)
-	{
-		int firstVerticleId = cloth1.CPUconstraints[i].p1->getIndex();
-		int secondParticleId = cloth1.CPUconstraints[i].p2->getIndex();
-
-		float P1_x = cloth1.CPUparticles[firstVerticleId].GetPosition().x;
-		float P2_x = cloth1.CPUparticles[secondParticleId].GetPosition().x;
-
-		float P1_y = cloth1.CPUparticles[firstVerticleId].GetPosition().y;
-		float P2_y = cloth1.CPUparticles[secondParticleId].GetPosition().y;
-
-		float P1_z = cloth1.CPUparticles[firstVerticleId].GetPosition().z;
-		float P2_z = cloth1.CPUparticles[secondParticleId].GetPosition().z;
-
-		glm::vec3 P1_Acceler = cloth1.CPUparticles[firstVerticleId].GetAcceleration();
-		glm::vec3 P2_Acceler = cloth1.CPUparticles[secondParticleId].GetAcceleration();
-
-
-		std::cout << "Contraint [" << i << "]: \n"
-			<< "Indexes : " << firstVerticleId << " | " << secondParticleId << "\n"
-			<< "Cords : " << P1_x << " " << P1_y << " " << P1_z << " | " << P2_x << " " << P2_y << " " << P2_z << "\n"
-			<< "Acceleration: " << P1_Acceler.x <<" "<<P1_Acceler.y <<" " << P1_Acceler.z <<" | "
-			<< P2_Acceler.x<< " "<<P2_Acceler.y <<" " << P2_Acceler.z << "\n";
-
-	}
-	*/
-
-//TO DODO's
-/*
-
-  *	DIVIDE CONTRAINTS 
-	to remove race conditions  
-	Notes:
-	- 8 new buffers, same size and same shader, the forumala is the same (move based on rest distance and particle positions)
-	- partly done for now with offset that divides buffer to 8 alligned buffers
-	- [DONE] add imgui live variable change + fps counter from imgui <3  [must have] [26]
-
-  * create selfcolision compute shader [must have] [27-28]
-  * create otherobject collision shader [must have] [28-30]
-
-
-*/

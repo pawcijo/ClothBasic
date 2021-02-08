@@ -28,5 +28,5 @@ public:
     void AddForceToParticle_2(glm::vec3 force,unsigned x, unsigned y);
     void SetForceToParticle_2(glm::vec3 force,unsigned x, unsigned y);
 
-    void Draw(Shader *shader, Transform &transform);
+    void Draw(Shader *shader, Transform &transform,bool wireMode);
 };

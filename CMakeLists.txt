@@ -55,6 +55,7 @@ add_executable(ClothBase
 
 	Src/Util/ClothDebugInfo/ClothDebugInfo.cpp
 	Src/Util/ClothGeneration/ClothGeneration.cpp
+	Src/Util/Utils/Utils.cpp
 
 	Src/Cloth/Particle/Particle.cpp
 	Src/Cloth/Model/Cloth.cpp
@@ -71,6 +72,8 @@ add_executable(ClothBase
 
 	Src/ClothApp/ClothApp.cpp
 )
+
+configure_file(Config.xml Config.xml  COPYONLY)
 
 target_link_libraries(ClothBase
 	${ALL_LIBS}

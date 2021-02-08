@@ -51,11 +51,11 @@ class Cloth
   std::vector<glm::vec4> positionData; //init with particle number
   std::vector<glm::vec4> oldPositionData;
   std::vector<glm::vec4> accelerationsData;
-  std::vector<glm::vec4> constraintsData; //need to diviede to 8 groups
-  std::vector<glm::vec4> constraintsDataAlligned; //need to diviede to 8 groups
-  std::vector<glm::vec4> constraintsDataAllignedByPosition; //need to diviede to 8 groups
+  std::vector<glm::vec4> constraintsData; //need to divide to 8 groups
+  std::vector<glm::vec4> constraintsDataAlligned; //need to divide to 8 groups
 
 
+  //temporaryConstrains containers
   std::vector<glm::vec4> constraintsData_1;
   std::vector<glm::vec4> constraintsData_2;
   std::vector<glm::vec4> constraintsData_3;
@@ -126,13 +126,14 @@ public:
   std::vector<glm::vec4> &getConstraintsData();
 
   unsigned positionVbo;
+
   unsigned oldPositionSSbo;
   unsigned accelerationSSbo;
   unsigned constraintSSbo;
 
   void retriveData();
 
-  void Draw(Shader *shader, Transform &transform);
+  void Draw(Shader *shader, Transform &transform,bool wireMode);
 
   /*
     Function Update  - old timeStep

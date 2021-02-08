@@ -7,9 +7,8 @@
 SubDataObject::SubDataObject(std::vector<glm::vec4> verticies,
                              std::vector<float> colors,
                              std::vector<unsigned> indicies,
-                             Transform &aTransform, DrawMode aDrawmode) : transform(aTransform)
+                             Transform &aTransform) : transform(aTransform)
 {
-    drawmode = aDrawmode;
     indiciesSize = indicies.size() * sizeof(unsigned);
 
     glGenBuffers(1, &objectBuffer);
@@ -50,9 +49,8 @@ SubDataObject::SubDataObject(std::vector<glm::vec4> verticies,
 SubDataObject::SubDataObject(std::vector<float> verticies,
                              std::vector<float> colors,
                              std::vector<unsigned> indicies,
-                             Transform &aTransform, DrawMode aDrawmode) : transform(aTransform)
+                             Transform &aTransform) : transform(aTransform)
 {
-    drawmode = aDrawmode;
     indiciesSize = indicies.size() * sizeof(unsigned);
 
     glGenBuffers(1, &objectBuffer);
@@ -90,12 +88,12 @@ SubDataObject::SubDataObject(std::vector<float> verticies,
 */
 }
 
-void SubDataObject::Draw(Shader *shader, std::vector<float> verticies, std::vector<float> colors, std::vector<unsigned> indicies)
+void SubDataObject::Draw(Shader *shader, std::vector<float> verticies, std::vector<float> colors, std::vector<unsigned> indicies,bool wiremode)
 {
     glUseProgram(shader->shaderProgramID);
 
     //  wireframe mode
-    if (drawmode == DrawMode::EWireFrame)
+    if (wiremode == true)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
@@ -128,12 +126,13 @@ void SubDataObject::Draw(Shader *shader, std::vector<float> verticies, std::vect
 void SubDataObject::Draw2(Shader *shader,
                           std::vector<glm::vec4> verticies,
                           std::vector<float> colors,
-                          std::vector<unsigned> indicies)
+                          std::vector<unsigned> indicies,
+                          bool wiremode)
 {
     glUseProgram(shader->shaderProgramID);
 
     //  wireframe mode
-    if (drawmode == DrawMode::EWireFrame)
+    if (wiremode == true)
     {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }

@@ -15,7 +15,6 @@
 static std::map<int,bool> keyPressedStatus;
 static bool mouseToUpdate = false;
 static bool processMouseMovement = true;
-static bool CPU_SIMULATION_ON = false;
 static double posx;
 static double posy;
 
@@ -44,6 +43,8 @@ class ClothApp
     Shader *subDataShader3D_2 = nullptr;
     Shader *clothResolveShader = nullptr;
     Shader *clothUpdateShader = nullptr;
+    Shader *clothCollisionShader = nullptr;
+    
 
     //Camera
     Camera camera;
@@ -72,9 +73,25 @@ class ClothApp
     unsigned clothParticleHight;
 
     //ImGui Params
-    int * clothConstraintsResolvePerUpdate = new int(200);
-    float * springConstant = new float(1);
+    int * clothConstraintsResolvePerUpdate = new int(25);
+    int * clothStructuralConstraintsRepetition = new int(4);
+    int * clothShearAndBendingConstraintsRepetition = new int(2);
+    float * springConstant = new float(0.5);
     double  * msPerFrame = new double(0);
+    float * gravityForce = new float(-0.4f);
+    float *aaBBXPosition = new float(0);
+    float *aaBBYPosition = new float(0);
+    float *aaBBZPosition = new float(0);
+    bool * gpuClothUpdateOn = new bool(true);
+    bool * gpuClothResolveConstraintOn = new bool(true);
+    bool * gpuClothCollisionOn = new bool(false);
+    bool * GpuWireFrameMode = new bool(false);
+    bool * CpuWireFrameMode = new bool(false);
+    bool * drawAABB = new bool(false);
+    bool * CPU_SIMULATION_ON = new bool(false);
+    bool * realTimeCorrection = new bool(false);
+    bool * cpuConstantTimeStep = new bool(false);
+    
     
     public:
     //Cloth
@@ -84,7 +101,7 @@ class ClothApp
 
     void run();
     void Update();
-    void PhysixUpdate();
+    void PhysixUpdate(float elapsedTime);
     void processKeys();
     void processMouse();
     void setViewPerspective(Camera &aCamera);

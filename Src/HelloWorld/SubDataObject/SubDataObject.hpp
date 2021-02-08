@@ -11,8 +11,7 @@ class SubDataObject
 
     unsigned objectBuffer;
     unsigned vertexArrayObject;
-    unsigned colorArrayObject;
-
+    
     unsigned indiciesSize;
     unsigned objectIndexByteOffset;
     DrawMode drawmode;
@@ -22,23 +21,23 @@ public:
     SubDataObject(std::vector<float> verticies,
                   std::vector<float> colors,
                   std::vector<unsigned> indicies,
-                  Transform &transform,
-                  DrawMode drawmode = DrawMode::EDefault);
+                  Transform &transform);
 
     SubDataObject(std::vector<glm::vec4> verticies,
                   std::vector<float> colors,
                   std::vector<unsigned> indicies,
-                  Transform &transform,
-                  DrawMode drawmode = DrawMode::EDefault);
+                  Transform &transform);
 
     ~SubDataObject();
     void Draw(Shader *shaderProgram,
               std::vector<float> verticies,
               std::vector<float> colors,
-              std::vector<unsigned> indicies);
+              std::vector<unsigned> indicies,
+              bool wireMode);
 
     void Draw2(Shader *shader,
                std::vector<glm::vec4> verticies,
                std::vector<float> colors,
-               std::vector<unsigned> indicies);
+               std::vector<unsigned> indicies,
+               bool wireMode);
 };

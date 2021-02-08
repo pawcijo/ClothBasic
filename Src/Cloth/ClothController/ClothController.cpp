@@ -63,7 +63,7 @@ void ClothController::SetForceToParticle_2(glm::vec3 force, unsigned x, unsigned
     activeCloth.SetForceToParticle_2(force, x, y);
 }
 
-void ClothController::Draw(Shader *shader, Transform &transform)
+void ClothController::Draw(Shader *shader, Transform &transform,bool wireMode)
 {
-    activeCloth.Draw(shader,transform);
+    activeCloth.Draw(shader,transform,wireMode);
 }
