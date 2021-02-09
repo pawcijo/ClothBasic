@@ -14,10 +14,10 @@ class Particle {
   glm::vec3 position;
   glm::vec3 oldPosition;
   glm::vec3 acceleration;
-  
+
   //Debug
   Transform transform;
- 
+
 public:
   Particle(glm::vec3 pos,int index,int xPosition,int yPosition, float mass = 1.0);
   Particle() = default;
