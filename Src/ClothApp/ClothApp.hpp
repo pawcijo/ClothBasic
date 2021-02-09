@@ -89,6 +89,7 @@ class ClothApp
     bool * CpuWireFrameMode = new bool(false);
     bool * drawAABB = new bool(false);
     bool * CPU_SIMULATION_ON = new bool(false);
+    bool * GPU_SIMULATION_ON = new bool(true);
     bool * realTimeCorrection = new bool(false);
     bool * cpuConstantTimeStep = new bool(false);
     

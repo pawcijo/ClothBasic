@@ -138,66 +138,70 @@ void ClothApp::PhysixUpdate(float elapsedTime)
 		}
 	}
 
-	if (*gpuClothResolveConstraintOn)
+	if (*GPU_SIMULATION_ON)
 	{
-		clothResolveShader->use();
-		clothResolveShader->setFloat("time", glfwGetTime());
-		clothResolveShader->setFloat("springConstant", *springConstant);
-		int constraintSize = cloth1.getConstraintsData().size() / 8;
 
-		for (int j = 0; j < *clothConstraintsResolvePerUpdate; j++)
+		if (*gpuClothResolveConstraintOn)
 		{
+			clothResolveShader->use();
+			clothResolveShader->setFloat("time", glfwGetTime());
+			clothResolveShader->setFloat("springConstant", *springConstant);
+			int constraintSize = cloth1.getConstraintsData().size() / 8;
 
-			clothResolveShader->setInt("computeNumber", j);
-			for (int i = 0; i < 8; i++)
+			for (int j = 0; j < *clothConstraintsResolvePerUpdate; j++)
 			{
-				if (i < 4)
+
+				clothResolveShader->setInt("computeNumber", j);
+				for (int i = 0; i < 8; i++)
 				{
-					for (int k = 0; k < *clothStructuralConstraintsRepetition; k++)
+					if (i < 4)
 					{
-						clothResolveShader->setInt("constraintNumber", i);
-						clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
-						glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
+						for (int k = 0; k < *clothStructuralConstraintsRepetition; k++)
+						{
+							clothResolveShader->setInt("constraintNumber", i);
+							clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
+							glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
+						}
 					}
-				}
-				else
-				{
-					for (int k = 0; k < *clothShearAndBendingConstraintsRepetition; k++)
+					else
 					{
-						clothResolveShader->setInt("constraintNumber", i);
-						clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
-						glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
+						for (int k = 0; k < *clothShearAndBendingConstraintsRepetition; k++)
+						{
+							clothResolveShader->setInt("constraintNumber", i);
+							clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
+							glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
+						}
 					}
 				}
 			}
+			cloth1.retriveData();
 		}
-		cloth1.retriveData();
-	}
-	glm::vec3 aaBBPostion = calculateAABBCenter(exampleToUpdate);
-	*aaBBXPosition = aaBBPostion.x;
-	*aaBBYPosition = aaBBPostion.y;
-	*aaBBZPosition = aaBBPostion.z;
+		glm::vec3 aaBBPostion = calculateAABBCenter(exampleToUpdate);
+		*aaBBXPosition = aaBBPostion.x;
+		*aaBBYPosition = aaBBPostion.y;
+		*aaBBZPosition = aaBBPostion.z;
 
-	if (*gpuClothUpdateOn)
-	{
-		clothUpdateShader->use();
-		clothUpdateShader->setVec3("aaBBPosition", aaBBPostion);
-		clothUpdateShader->setFloat("dt", elapsedTime);
-		clothUpdateShader->setBool("checkCollision", *gpuClothCollisionOn);
+		if (*gpuClothUpdateOn)
+		{
+			clothUpdateShader->use();
+			clothUpdateShader->setVec3("aaBBPosition", aaBBPostion);
+			clothUpdateShader->setFloat("dt", elapsedTime);
+			clothUpdateShader->setBool("checkCollision", *gpuClothCollisionOn);
 
-		cloth1.AddForceGPU(glm::vec3(0, *gravityForce, 0));
-		glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
-		cloth1.retriveData();
-	}
+			cloth1.AddForceGPU(glm::vec3(0, *gravityForce, 0));
+			glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
+			cloth1.retriveData();
+		}
 
-	if (*gpuClothCollisionOn)
-	{
-		clothCollisionShader->use();
-		clothCollisionShader->setVec3("aaBBPosition", aaBBPostion);
-		clothCollisionShader->setBool("checkCollision", *gpuClothCollisionOn);
-		cloth1.AddForceGPU(glm::vec3(0, *gravityForce, 0));
-		glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
-		cloth1.retriveData();
+		if (*gpuClothCollisionOn)
+		{
+			clothCollisionShader->use();
+			clothCollisionShader->setVec3("aaBBPosition", aaBBPostion);
+			clothCollisionShader->setBool("checkCollision", *gpuClothCollisionOn);
+			cloth1.AddForceGPU(glm::vec3(0, *gravityForce, 0));
+			glDispatchCompute(std::ceil(cloth1.getPositionData().size() / 512.0), 1, 1);
+			cloth1.retriveData();
+		}
 	}
 }
 
@@ -458,7 +462,7 @@ void ClothApp::ImGuiStuff()
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 	ImGui::Begin("Cloth simulation");
-	ImGui::Text("This is simple cloth simulation on cpu and gpu, press M to add Forece and make it move !");
+	ImGui::Text("This is simple cloth simulation on cpu and gpu,press F1 to use UI, press M to add Forece and make it move !");
 	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
 	ImGui::Text("AABB position  %.3f  %.3f  %.3f ", *aaBBXPosition, *aaBBYPosition, *aaBBZPosition);
 	ImGui::SliderInt("Contraints Resolve Per Update", clothConstraintsResolvePerUpdate, 0, 1000);
@@ -473,10 +477,10 @@ void ClothApp::ImGuiStuff()
 	ImGui::Checkbox("CPU WireFrameMode", CpuWireFrameMode);
 	ImGui::Checkbox("Draw AABB", drawAABB);
 	ImGui::Checkbox("CPU simulation", CPU_SIMULATION_ON);
+	ImGui::Checkbox("GPU simulation", GPU_SIMULATION_ON);
+
 	ImGui::Checkbox("Time(Chrono) interpolation", realTimeCorrection);
 	ImGui::Checkbox("Constant time step for cpu", cpuConstantTimeStep);
-
-	
 
 	ImGui::SameLine();
 	ImGui::Checkbox("ClothCollisionOn", gpuClothCollisionOn);
