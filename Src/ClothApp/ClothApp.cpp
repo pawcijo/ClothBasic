@@ -62,6 +62,7 @@ ClothApp::ClothApp(Window &window) : windowRef(window), config(ConfigUtils::Conf
 
 	clothUpdateShader->use();
 	clothUpdateShader->setFloat("dt", dt);
+	clothUpdateShader->setFloat("dampingLength", dt);
 }
 
 void ClothApp::processMouse()
@@ -160,7 +161,7 @@ void ClothApp::PhysixUpdate(float elapsedTime)
 						{
 							clothResolveShader->setInt("constraintNumber", i);
 							clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
-							glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
+							glDispatchCompute(std::ceil(constraintSize / 1024.0), 1, 1);
 						}
 					}
 					else
@@ -169,7 +170,7 @@ void ClothApp::PhysixUpdate(float elapsedTime)
 						{
 							clothResolveShader->setInt("constraintNumber", i);
 							clothResolveShader->setInt("offset", (cloth1.getConstraintsData().size() / 8) * i);
-							glDispatchCompute(std::ceil(constraintSize / 512.0), 1, 1);
+							glDispatchCompute(std::ceil(constraintSize / 1024.0), 1, 1);
 						}
 					}
 				}
@@ -186,6 +187,7 @@ void ClothApp::PhysixUpdate(float elapsedTime)
 			clothUpdateShader->use();
 			clothUpdateShader->setVec3("aaBBPosition", aaBBPostion);
 			clothUpdateShader->setFloat("dt", elapsedTime);
+			clothUpdateShader->setFloat("dampingLength", *dampingLength);
 			clothUpdateShader->setBool("checkCollision", *gpuClothCollisionOn);
 
 			cloth1.AddForceGPU(glm::vec3(0, *gravityForce, 0));
@@ -468,8 +470,8 @@ void ClothApp::ImGuiStuff()
 	ImGui::SliderInt("Contraints Resolve Per Update", clothConstraintsResolvePerUpdate, 0, 1000);
 	ImGui::SliderInt("Contraints Structural Resolve Per Update", clothStructuralConstraintsRepetition, 0, 100);
 	ImGui::SliderInt("Contraints Shear And Bending Resolve Per Update", clothShearAndBendingConstraintsRepetition, 0, 100);
-
 	ImGui::SliderFloat("Spring constant", springConstant, 0.001, 1);
+	ImGui::SliderFloat("Damping length", dampingLength, 0.001, 1);
 	ImGui::SliderFloat("Gravity Force", gravityForce, -5, 1);
 	ImGui::Checkbox("ClothUpdateOn", gpuClothUpdateOn);
 	ImGui::Checkbox("ClothResolveConstraintOn", gpuClothResolveConstraintOn);

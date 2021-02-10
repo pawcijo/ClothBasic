@@ -13,10 +13,6 @@ public:
 
   Constraint(Particle *p1, Particle *p2);
 
-  /*
-  Function ResolveConstraint  - old satisfyConstraint
-  solve simple constraint between 2 Particles
-  */
   void ResolveConstraint();
   float getRestDistance();
 };

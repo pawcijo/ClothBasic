@@ -48,11 +48,11 @@ class Cloth
   unsigned particlesHeightNumber;
 
   //GPU DATA
-  std::vector<glm::vec4> positionData; //init with particle number
+  std::vector<glm::vec4> positionData;
   std::vector<glm::vec4> oldPositionData;
   std::vector<glm::vec4> accelerationsData;
-  std::vector<glm::vec4> constraintsData; //need to divide to 8 groups
-  std::vector<glm::vec4> constraintsDataAlligned; //need to divide to 8 groups
+  std::vector<glm::vec4> constraintsData;
+  std::vector<glm::vec4> constraintsDataAlligned;
 
 
   //temporaryConstrains containers

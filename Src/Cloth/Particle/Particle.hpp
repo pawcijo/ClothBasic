@@ -31,13 +31,8 @@ public:
   void AddForce(glm::vec3 force);
   void SetForce(glm::vec3 force);
 
-  /*
-  Function Update - old timeStep
-  force = mass * accleration,
-  calculates position and sets old position
-  */
   void Update(float elapsedTime);
-  glm::vec3 &GetPosition(); // TODO change to Transform
+  glm::vec3 &GetPosition();
   glm::vec3 &GetAcceleration();
   void ResetAcceleration();
 
@@ -49,15 +44,9 @@ public:
   int getIndex();
 
   bool isMoveable();
-  /*
-    Function Move  - old offsetPos
-    pos+= vector;
-  */
   void Move(const glm::vec3 vector);
 
-  /*
-    Function SetMoveable  - old make Unmoveable
-  */
+
   void SetMoveable(bool value);
 
   bool GetMoveable();

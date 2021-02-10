@@ -79,6 +79,7 @@ class ClothApp
     float * springConstant = new float(0.5);
     double  * msPerFrame = new double(0);
     float * gravityForce = new float(-0.4f);
+    float * dampingLength = new float(0.01f);
     float *aaBBXPosition = new float(0);
     float *aaBBYPosition = new float(0);
     float *aaBBZPosition = new float(0);

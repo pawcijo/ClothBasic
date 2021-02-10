@@ -32,7 +32,6 @@ void Cloth::generateBuffers(unsigned particleNumber, unsigned constraintNumber)
   glGenBuffers(1, &EBO);
 
   glGenVertexArrays(1, &VAO);
-  glBindVertexArray(VAO);
 
   glBindVertexArray(VAO);
   glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
@@ -68,11 +67,11 @@ void Cloth::retriveData()
   // ------------------------------------------- POSITION ---------------------------
   glBindBuffer(GL_ARRAY_BUFFER, positionVbo);
 
-  glm::vec4 *kekw = (glm::vec4 *)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
+  glm::vec4 *par1 = (glm::vec4 *)glMapBuffer(GL_ARRAY_BUFFER, GL_READ_ONLY);
 
   for (int i = 0; i < DataSize; i++)
   {
-    positionData[i] = glm::vec4(kekw[i]);
+    positionData[i] = glm::vec4(par1[i]);
   }
 
   glUnmapBuffer(GL_ARRAY_BUFFER);
@@ -81,11 +80,11 @@ void Cloth::retriveData()
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, oldPositionSSbo);
 
-  glm::vec4 *kekw1 = (glm::vec4 *)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+  glm::vec4 *part2 = (glm::vec4 *)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
 
   for (int i = 0; i < DataSize; i++)
   {
-    oldPositionData[i] = glm::vec4(kekw1[i]);
+    oldPositionData[i] = glm::vec4(part2[i]);
   }
 
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -94,11 +93,11 @@ void Cloth::retriveData()
 
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, accelerationSSbo);
 
-  glm::vec4 *kekw2 = (glm::vec4 *)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
+  glm::vec4 *part3 = (glm::vec4 *)glMapBuffer(GL_SHADER_STORAGE_BUFFER, GL_READ_ONLY);
 
   for (int i = 0; i < DataSize; i++)
   {
-    accelerationsData[i] = glm::vec4(kekw2[i]);
+    accelerationsData[i] = glm::vec4(part3[i]);
   }
 
   glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
@@ -111,10 +110,7 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
 {
 
   CPUparticles.resize(particleWidth *
-                      particleWidth); // I am essentially using this vector
-                                      // as an array with room for
-                                      // num_particles_width*num_particles_height
-                                      // particles
+                      particleWidth);
 
   // creating particles in a grid of particles from (0,0,0) to (width,-height,0)
   int index = 0;
@@ -132,8 +128,7 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
     }
   }
 
-  // Connecting immediate neighbor particles with constraints (distance 1 and
-  // sqrt(2) in the grid)
+  // distance 1 and sqrt(2)
   for (int x = 0; x < particlesWidthNumber; x++)
   {
     for (int y = 0; y < particlesHeightNumber; y++)
@@ -153,8 +148,7 @@ Cloth::Cloth(float width, float height, unsigned particleWidth,
     }
   }
 
-  // Connecting secondary neighbors with constraints (distance 2 and sqrt(4) in
-  // the grid)
+  // distance 2 and sqrt(4) 
   for (int x = 0; x < particlesWidthNumber; x++)
   {
     for (int y = 0; y < particlesHeightNumber; y++)
