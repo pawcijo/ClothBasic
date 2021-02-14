@@ -129,13 +129,13 @@ void ClothApp::PhysixUpdate(float elapsedTime)
 		{
 			cloth1.AddForce(glm::vec3(0, *gravityForce, 0) *
 							TIME_STEPSIZE2);
-			cloth1.Update(TIME_STEPSIZE2, 25);
+			cloth1.Update(TIME_STEPSIZE2, *CPUConstrainteResolveNumberPerUpdate);
 		}
 		else
 		{
 			cloth1.AddForce(glm::vec3(0, *gravityForce, 0) *
 							elapsedTime);
-			cloth1.Update(elapsedTime, 25);
+			cloth1.Update(elapsedTime, *CPUConstrainteResolveNumberPerUpdate);
 		}
 	}
 
@@ -164,7 +164,16 @@ void ClothApp::PhysixUpdate(float elapsedTime)
 							glDispatchCompute(std::ceil(constraintSize / 1024.0), 1, 1);
 						}
 					}
-					else
+				}
+			}
+
+			for (int j = 0; j < *clothConstraintsResolvePerUpdate; j++)
+			{
+
+				clothResolveShader->setInt("computeNumber", j);
+				for (int i = 0; i < 8; i++)
+				{
+					if (i > 4)
 					{
 						for (int k = 0; k < *clothShearAndBendingConstraintsRepetition; k++)
 						{
@@ -175,6 +184,7 @@ void ClothApp::PhysixUpdate(float elapsedTime)
 					}
 				}
 			}
+
 			cloth1.retriveData();
 		}
 		glm::vec3 aaBBPostion = calculateAABBCenter(exampleToUpdate);
@@ -470,6 +480,7 @@ void ClothApp::ImGuiStuff()
 	ImGui::SliderInt("Contraints Resolve Per Update", clothConstraintsResolvePerUpdate, 0, 1000);
 	ImGui::SliderInt("Contraints Structural Resolve Per Update", clothStructuralConstraintsRepetition, 0, 100);
 	ImGui::SliderInt("Contraints Shear And Bending Resolve Per Update", clothShearAndBendingConstraintsRepetition, 0, 100);
+	ImGui::SliderInt("Contraints resolve number for CPU", CPUConstrainteResolveNumberPerUpdate, 0, 100);
 	ImGui::SliderFloat("Spring constant", springConstant, 0.001, 1);
 	ImGui::SliderFloat("Damping length", dampingLength, 0.001, 1);
 	ImGui::SliderFloat("Gravity Force", gravityForce, -5, 1);

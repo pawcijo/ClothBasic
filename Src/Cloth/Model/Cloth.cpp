@@ -356,18 +356,18 @@ std::vector<Particle> &Cloth::GetParticles() { return CPUparticles; }
 void Cloth::Update(float elapsedTime, int CONSTRAINT_ITERATIONS)
 {
 
-  for (int i = 0; i < CONSTRAINT_ITERATIONS; i++) // iterate over all constraints several times
+  for (int i = 0; i < CONSTRAINT_ITERATIONS; i++) 
   {
     for (auto &constraint : CPUconstraints)
     {
-      constraint.ResolveConstraint(); // satisfy constraint.
+      constraint.ResolveConstraint(); 
     }
   }
 
   for (auto &particle : CPUparticles)
   {
-    particle.Update(elapsedTime); // calculate the position of each particle at
-                                  // the next time step.
+    particle.Update(elapsedTime); 
+                                  
   }
 }
 
