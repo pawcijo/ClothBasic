@@ -139,7 +139,7 @@ public:
     Function Update  - old timeStep
   */
 
-  void Update(float elapsedTime, int CONSTRAINT_ITERATIONS);
+  void Update(float elapsedTime, int CONSTRAINT_ITERATIONS,float springConstant);
   void AddForce(glm::vec3 force); // add gravity or any other force to all particles
   void AddForceGPU(glm::vec3 force,std::vector<int> indicies); 
   void AddForceGPU(glm::vec3 force); 

@@ -13,6 +13,6 @@ public:
 
   Constraint(Particle *p1, Particle *p2);
 
-  void ResolveConstraint(int resolveNumber);
+  void ResolveConstraint(int resolveNumber,float SpringConstant);
   float getRestDistance();
 };

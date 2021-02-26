@@ -129,13 +129,13 @@ void ClothApp::PhysixUpdate(float elapsedTime)
 		{
 			cloth1.AddForce(glm::vec3(0, *gravityForce, 0) *
 							TIME_STEPSIZE2);
-			cloth1.Update(TIME_STEPSIZE2, *CPUConstrainteResolveNumberPerUpdate);
+			cloth1.Update(TIME_STEPSIZE2, *CPUConstrainteResolveNumberPerUpdate,*springConstant);
 		}
 		else
 		{
 			cloth1.AddForce(glm::vec3(0, *gravityForce, 0) *
 							elapsedTime);
-			cloth1.Update(elapsedTime, *CPUConstrainteResolveNumberPerUpdate);
+			cloth1.Update(elapsedTime, *CPUConstrainteResolveNumberPerUpdate,*springConstant);
 		}
 	}
 

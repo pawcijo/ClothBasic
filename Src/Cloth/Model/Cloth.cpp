@@ -354,11 +354,11 @@ void Cloth::FillAllignedData() {
 
 std::vector<Particle> &Cloth::GetParticles() { return CPUparticles; }
 
-void Cloth::Update(float elapsedTime, int CONSTRAINT_ITERATIONS) {
+void Cloth::Update(float elapsedTime, int CONSTRAINT_ITERATIONS,float springConstant) {
 
   for (int i = 0; i < CONSTRAINT_ITERATIONS; i++) {
     for (auto &constraint : CPUconstraints) {
-      constraint.ResolveConstraint(i);
+      constraint.ResolveConstraint(i,springConstant);
     }
   }
 
