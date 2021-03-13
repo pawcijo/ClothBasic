@@ -76,9 +76,7 @@ class ClothApp
     int * clothConstraintsResolvePerUpdate = new int(25);
     int * clothStructuralConstraintsRepetition = new int(4);
     int * clothShearAndBendingConstraintsRepetition = new int(2);
-
     int * CPUConstrainteResolveNumberPerUpdate = new int(25);
-
     float * springConstant = new float(0.5);
     double  * msPerFrame = new double(0);
     float * gravityForce = new float(-0.4f);

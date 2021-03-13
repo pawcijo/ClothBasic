@@ -13,7 +13,7 @@ int main()
   std::cout<<"Config loaded ..." <<"\n";
   unsigned WINDOW_WIDTH = std::get<unsigned>(config.GetValueFromMap("WINDOW_WIDTH"));
   unsigned WINDOW_HEIGHT = std::get<unsigned>(config.GetValueFromMap("WINDOW_HEIGHT"));
-  std::string windowName = "ClothBase";
+  std::string windowName = "Symulacja tkanin w czasie rzeczywistym";
   Window window(WINDOW_WIDTH, WINDOW_HEIGHT, windowName.c_str());
   std::cout<<"Window  created  ..." <<"\n";
   ClothApp app(window);
